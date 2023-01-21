@@ -38,12 +38,22 @@ export const Sprite = (props: {
     const nh = image.naturalHeight;
     const cw = nw / 5;
     const ch = nh / 4;
-    ctx.drawImage(image, cw * f, 0, cw, ch, 0, 0, 100, 100);
+    ctx.drawImage(
+      image,
+      cw * (f % 5),
+      cw * Math.floor(f / 5),
+      cw,
+      ch,
+      0,
+      0,
+      100,
+      100
+    );
   }, [f]);
 
   setTimeout(() => {
     if (x >= 20) {
-      setF(0);
+      setF(f - (f % 5));
       return;
     }
     setX(x + 1);
@@ -55,34 +65,29 @@ export const Sprite = (props: {
   }, 30 + t);
 
   return (
-    <>
-      <canvas
-        id={props.id}
-        width={100}
-        height={100 * (17 / 16)}
-        className={styles.canvas}
-        style={{
-          top: `calc( (100vw / 256)*${y})`,
-          left: `calc( (100vw / 256)*${x})`,
-          width: `calc(100vw / 16)`,
-        }}
-        onClick={() => {
-          alert();
-        }}
-      >
-        <img
-          style={{ display: "none" }}
-          id="shadow"
-          src={`/shadow.png`}
-          alt="shadow"
-        />
-        <img
-          style={{ display: "none" }}
-          id={props.name}
-          src={`/${props.name}.png`}
-          alt={props.name}
-        />
-      </canvas>
-    </>
+    <canvas
+      id={props.id}
+      width={100}
+      height={100 * (17 / 16)}
+      className={styles.canvas}
+      style={{
+        top: `calc( (100vw / 256)*${y})`,
+        left: `calc( (100vw / 256)*${x})`,
+        width: `calc(100vw / 16)`,
+      }}
+    >
+      <img
+        style={{ display: "none" }}
+        id="shadow"
+        src={`/shadow.png`}
+        alt="shadow"
+      />
+      <img
+        style={{ display: "none" }}
+        id={props.name}
+        src={`/${props.name}.png`}
+        alt={props.name}
+      />
+    </canvas>
   );
 };

@@ -3,6 +3,7 @@ import styles from "@/styles/Home.module.css";
 import { Sprite } from "@/components/Sprites";
 import { Card, Column, Row } from "@/components/Containers";
 import Image from "next/image";
+import { Icon } from "@/components/Icons";
 
 export default function Home() {
   return (
@@ -60,6 +61,19 @@ export default function Home() {
                 </Row>
               </Column>
             </Card>
+            <br />
+            <Icon name="resume" link="/Resume.pdf" />
+            <Icon name="linkedin" link="https://linkedin.com/in/-ben-key-" />
+            <Icon name="github" link="https://github.com/mellophone" />
+            <Icon name="gmail" link="mailto:bkey3125@gmail.com" />
+            <Icon
+              name="discord"
+              link="https://discordapp.com/users/318511797642592257"
+            />
+            <Icon
+              name="spotify"
+              link="https://open.spotify.com/user/iep6b6xqxe1hrs734pehvz3rd"
+            />
           </div>
         </div>
       </main>

@@ -30,6 +30,27 @@
   align-items: center;
 }
 
+.card:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.smallcard {
+  margin: 1vh;
+  padding: 1vh;
+  height: fit-content;
+  padding-bottom: 0.5vh;
+  border-radius: 1vh;
+  height: min-content;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: inline-block;
+  justify-content: center;
+  align-items: center;
+}
+
+.smallcard:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
 .container {
   height: 100vh;
 }
@@ -64,4 +85,10 @@
   font-size: 1.7vh;
   width: 22vh;
   margin-left: 2vh;
+}
+
+.icon {
+  height: 4vh;
+  width: 4vh;
+  margin: 0px;
 }

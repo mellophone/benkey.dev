@@ -3,6 +3,10 @@ export const Card = (props: { children?: any }) => {
   return <div className={styles.card}>{props.children}</div>;
 };
 
+export const SmallCard = (props: { children?: any }) => {
+  return <div className={styles.smallcard}>{props.children}</div>;
+};
+
 export const Row = (props: { children?: any }) => {
   return (
     <div
