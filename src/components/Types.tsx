@@ -1,4 +1,4 @@
-type ins = {
+export type ins = {
   data:
     | {
         action: "wave";

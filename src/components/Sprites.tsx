@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import styles from "@/styles/Home.module.css";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { ins } from "./Types";
 
 const spriteNames = ["ben", "jacketben", "kevin"] as const;
 type spriteName = typeof spriteNames[number];

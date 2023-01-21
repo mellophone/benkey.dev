@@ -6,6 +6,7 @@ import { Card, Column, Row } from "@/components/Containers";
 import Image from "next/image";
 import { Icon } from "@/components/Icons";
 import { useEffect, useState } from "react";
+import { ins } from "@/components/Types";
 
 export default function Home() {
   const benState = useState<ins | undefined>(undefined);
