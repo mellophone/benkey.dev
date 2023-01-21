@@ -1,11 +1,31 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { DefaultHead } from "@/components/DefaultHead";
 import styles from "@/styles/Home.module.css";
 import { Sprite } from "@/components/Sprites";
 import { Card, Column, Row } from "@/components/Containers";
 import Image from "next/image";
 import { Icon } from "@/components/Icons";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const benState = useState<ins | undefined>(undefined);
+  const [ben, setBen] = benState;
+
+  useEffect(() => {
+    if (!ben) {
+      setBen({
+        complete: false,
+        data: {
+          action: "walk",
+          direction: "SE",
+          speed: 60,
+          times: 3,
+        },
+      });
+      return;
+    }
+  });
+
   return (
     <>
       <DefaultHead />
@@ -18,7 +38,7 @@ export default function Home() {
         }
       `}</style>
       <main>
-        <Sprite name="ben" id="b1" xi={-10} yi={-10} />
+        <Sprite name="ben" id="b1" xi={-10} yi={-10} instruction={benState} />
         <div
           className={styles.container}
           style={{
