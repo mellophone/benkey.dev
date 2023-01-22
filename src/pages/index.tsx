@@ -5,8 +5,10 @@ import { BenSprite, FriendSprite } from "@/components/Sprites";
 import { Card, Column, Row } from "@/components/Containers";
 import Image from "next/image";
 import { Icon } from "@/components/Icons";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ins } from "@/components/Types";
+import dynamic from "next/dynamic";
+import NoSSR from "@/components/NoSSR";
 
 export default function Home() {
   const benState = useState<ins | undefined>(undefined);
@@ -45,13 +47,9 @@ export default function Home() {
           yi={-10}
           instruction={benState}
         />
-        <FriendSprite
-          name="kevin"
-          id="friend1"
-          xi={200}
-          yi={75}
-          instruction={friendState}
-        />
+        <NoSSR>
+          <FriendSprite name="kevin" id="friend1" instruction={friendState} />
+        </NoSSR>
         <div
           className={styles.container}
           style={{

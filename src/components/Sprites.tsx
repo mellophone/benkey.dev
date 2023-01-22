@@ -3,6 +3,7 @@
 import styles from "@/styles/Home.module.css";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ins } from "./Types";
+import seedrandom from "seedrandom";
 
 const spriteNames = ["ben", "jacketben", "kevin"] as const;
 type spriteName = typeof spriteNames[number];
@@ -172,8 +173,8 @@ export const BenSprite = (props: {
 };
 
 export const FriendSprite = (props: {
-  xi: number;
-  yi: number;
+  xi?: number;
+  yi?: number;
   name: spriteName;
   id: string;
   instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
@@ -207,8 +208,8 @@ export const FriendSprite = (props: {
       id={props.id}
       instruction={props.instruction}
       name={props.name}
-      xi={props.xi}
-      yi={props.yi}
+      xi={props.xi || 20 * Math.floor(Math.random() * 10)}
+      yi={props.yi || 5 + 10 * Math.floor(Math.random() * 10)}
       behavior={randomBehavior}
     />
   );
