@@ -23,7 +23,7 @@ const Sprite = (props: {
   const [y, setY] = useState<number>(props.yi);
 
   /*/ Sprite Draw Function: Updates only when the frame state changes /*/
-  useEffect(() => {
+  const redraw = () => {
     const canvas = document.getElementById(props.id) as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
@@ -36,6 +36,7 @@ const Sprite = (props: {
     const sw = shad.naturalWidth;
     const sh = shad.naturalHeight;
     ctx.drawImage(shad, 0, 0, sw, sh, 0, 0, 100, 100 * (17 / 16));
+    shad.onload = redraw;
 
     const image = document.getElementById(props.name) as HTMLImageElement;
     const nw = image.naturalWidth;
@@ -53,6 +54,15 @@ const Sprite = (props: {
       100,
       100
     );
+    image.onload = redraw;
+  };
+
+  useEffect(() => {
+    redraw();
+  }, []);
+
+  useEffect(() => {
+    redraw();
   }, [f]);
 
   /*/ Sprite Thinker /*/
@@ -124,6 +134,7 @@ const Sprite = (props: {
         top: `calc( (100vw / 256)*${y})`,
         left: `calc( (100vw / 256)*${x})`,
         width: `calc(100vw / 16)`,
+        zIndex: y + 10,
       }}
     >
       <img
