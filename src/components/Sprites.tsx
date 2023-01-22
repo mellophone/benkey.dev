@@ -3,7 +3,6 @@
 import styles from "@/styles/Home.module.css";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ins } from "./Types";
-import seedrandom from "seedrandom";
 
 const spriteNames = ["ben", "jacketben", "kevin"] as const;
 type spriteName = typeof spriteNames[number];
