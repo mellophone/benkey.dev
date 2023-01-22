@@ -14,7 +14,11 @@ type iconName = typeof iconNames[number];
 
 export const Icon = (props: { name: iconName; link?: string }) => {
   return (
-    <a href={props.link || "https://benkey.dev"}>
+    <a
+      href={props.link || "https://benkey.dev"}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       <SmallCard>
         <Image
           className={styles.icon}

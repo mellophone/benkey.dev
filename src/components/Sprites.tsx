@@ -4,7 +4,17 @@ import styles from "@/styles/Home.module.css";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ins } from "./Types";
 
-const spriteNames = ["ben", "jacketben", "kevin"] as const;
+const spriteNames = [
+  "ben",
+  "jacketben",
+  "kevin",
+  "mihir",
+  "gen",
+  "frank",
+  "alizain",
+  "johnny",
+  "nathan",
+] as const;
 type spriteName = typeof spriteNames[number];
 
 const Sprite = (props: {
@@ -14,6 +24,13 @@ const Sprite = (props: {
   id: string;
   instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
   behavior?: () => void;
+  link?: string;
+  gridPack?: {
+    spriteGrid: boolean[][];
+    setXY: (x: number, y: number) => void;
+    unsetXY: (x: number, y: number) => void;
+    getXY: (x: number, y: number) => boolean;
+  };
 }) => {
   const [instruction, setInstruction] = props.instruction;
   const [tick, setTick] = useState<number>(0);
@@ -59,11 +76,28 @@ const Sprite = (props: {
 
   useEffect(() => {
     redraw();
+    setTimeout(() => {
+      redraw();
+    }, 10);
   }, []);
 
   useEffect(() => {
     redraw();
   }, [f]);
+
+  const canMove = (direction: "SE" | "SW" | "NW" | "NE"): boolean => {
+    if (!props.gridPack) return true;
+    const checkX = x + (direction.includes("E") ? 10 : -10);
+    const checkY = y + (direction.includes("S") ? 5 : -5);
+    return !props.gridPack.getXY(checkX, checkY);
+  };
+
+  const setMove = (direction: "SE" | "SW" | "NW" | "NE"): void => {
+    if (!props.gridPack) return;
+    const checkX = x + (direction.includes("E") ? 10 : -10);
+    const checkY = y + (direction.includes("S") ? 5 : -5);
+    props.gridPack.setXY(checkX, checkY);
+  };
 
   /*/ Sprite Thinker /*/
   useEffect(() => {
@@ -101,15 +135,32 @@ const Sprite = (props: {
             instruction.complete = true;
             setF(newF - (newF % 5));
             setTick(0);
+            return;
           } else {
+            const pixelSize = window.innerWidth / 256;
+            const pixelHeight = window.innerHeight / pixelSize - 16;
             if (
               ((instruction.data.direction.includes("W") && x <= 0) ||
                 (instruction.data.direction.includes("E") && x >= 240) ||
-                (instruction.data.direction.includes("N") && y <= 0)) &&
-              props.behavior
+                (instruction.data.direction.includes("N") && y <= 0) ||
+                (instruction.data.direction.includes("S") &&
+                  y >= pixelHeight - (pixelHeight % 5))) &&
+              props.behavior &&
+              tick === 0
             ) {
               instruction.complete = true;
               return;
+            }
+            if (tick % 10 == 0) {
+              if (!canMove(instruction.data.direction)) {
+                instruction.complete = true;
+                setF(newF - (newF % 5));
+                setTick(0);
+                props.gridPack?.setXY(x, y);
+                return;
+              }
+              setMove(instruction.data.direction);
+              props.gridPack?.unsetXY(x, y);
             }
             setX(x + (direction.includes("E") ? 1 : -1));
             if ((newF % 5) % 2 === (newF > 9 ? 0 : 1)) {
@@ -125,31 +176,33 @@ const Sprite = (props: {
   });
 
   return (
-    <canvas
-      id={props.id}
-      width={100}
-      height={100 * (17 / 16)}
-      className={styles.canvas}
-      style={{
-        top: `calc( (100vw / 256)*${y})`,
-        left: `calc( (100vw / 256)*${x})`,
-        width: `calc(100vw / 16)`,
-        zIndex: y + 10,
-      }}
-    >
-      <img
-        style={{ display: "none" }}
-        id="shadow"
-        src={`/shadow.png`}
-        alt="shadow"
-      />
-      <img
-        style={{ display: "none" }}
-        id={props.name}
-        src={`/${props.name}.png`}
-        alt={props.name}
-      />
-    </canvas>
+    <a href={props.link} target="_blank" rel="noopener noreferrer">
+      <canvas
+        id={props.id}
+        width={100}
+        height={100 * (17 / 16)}
+        className={styles.canvas}
+        style={{
+          top: `calc( (100vw / 256)*${y})`,
+          left: `calc( (100vw / 256)*${x})`,
+          width: `calc(100vw / 16)`,
+          zIndex: y + 10,
+        }}
+      >
+        <img
+          style={{ display: "none" }}
+          id="shadow"
+          src={`/shadow.png`}
+          alt="shadow"
+        />
+        <img
+          style={{ display: "none" }}
+          id={props.name}
+          src={`/${props.name}.png`}
+          alt={props.name}
+        />
+      </canvas>
+    </a>
   );
 };
 
@@ -172,15 +225,23 @@ export const BenSprite = (props: {
 };
 
 export const FriendSprite = (props: {
-  xi?: number;
-  yi?: number;
+  // xi: number;
+  // yi: number;
+  xyi: [number, number];
   name: spriteName;
   id: string;
   instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
+  link?: string;
+  gridPack: {
+    spriteGrid: boolean[][];
+    setXY: (x: number, y: number) => void;
+    unsetXY: (x: number, y: number) => void;
+    getXY: (x: number, y: number) => boolean;
+  };
 }) => {
   const [instruction, setInstruction] = props.instruction;
   const randomBehavior = () => {
-    const move = Math.floor(Math.random() * 4);
+    const move = Math.floor(Math.random() * 3);
     if (move === 0) {
       const randomDirection = Math.floor(Math.random() * 4);
       const direction =
@@ -207,9 +268,11 @@ export const FriendSprite = (props: {
       id={props.id}
       instruction={props.instruction}
       name={props.name}
-      xi={props.xi || 20 * Math.floor(Math.random() * 10)}
-      yi={props.yi || 5 + 10 * Math.floor(Math.random() * 10)}
+      xi={props.xyi[0]}
+      yi={props.xyi[1]}
+      link={props.link}
       behavior={randomBehavior}
+      gridPack={props.gridPack}
     />
   );
 };

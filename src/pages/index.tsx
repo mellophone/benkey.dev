@@ -15,8 +15,39 @@ export default function Home() {
   const [ben, setBen] = benState;
 
   const friendState = useState<ins | undefined>(undefined);
+  const [xyi, setxyi] = useState<[number, number]>([10, 10]);
+  const friendState2 = useState<ins | undefined>(undefined);
+  const [xyi2, setxyi2] = useState<[number, number]>([10, 10]);
+  const friendState3 = useState<ins | undefined>(undefined);
+  const [xyi3, setxyi3] = useState<[number, number]>([10, 10]);
+  const friendState4 = useState<ins | undefined>(undefined);
+  const [xyi4, setxyi4] = useState<[number, number]>([10, 10]);
+  const friendState5 = useState<ins | undefined>(undefined);
+  const [xyi5, setxyi5] = useState<[number, number]>([10, 10]);
+  const friendState6 = useState<ins | undefined>(undefined);
+  const [xyi6, setxyi6] = useState<[number, number]>([10, 10]);
+
+  const [spriteGrid, setSpriteGrid] = useState<boolean[][]>(() => {
+    const arr = [];
+    for (let x = 0; x < 13; x++) {
+      const row = [];
+      for (let y = 0; y < 50; y++) {
+        row.push(false);
+      }
+      arr.push(row);
+    }
+    arr[0][0] = true;
+    arr[1][1] = true;
+    return arr;
+  });
 
   useEffect(() => {
+    setxyi(getAvailableXY());
+    setxyi2(getAvailableXY());
+    setxyi3(getAvailableXY());
+    setxyi4(getAvailableXY());
+    setxyi5(getAvailableXY());
+    setxyi6(getAvailableXY());
     setBen({
       complete: false,
       data: {
@@ -27,6 +58,46 @@ export default function Home() {
       },
     });
   }, []);
+
+  const getAvailableXY = (): [number, number] => {
+    let randX = Math.floor(Math.random() * 25) * 10;
+    let randY =
+      Math.floor(Math.random() * 11) * 10 + (randX % 20 === 0 ? 5 : 0);
+    let r = (randX - (randX % 20)) / 20;
+    let c = randY / 5;
+    console.log(`${randX} ${randY} -> [${r}][${c}]`);
+    // console.log(spriteGrid[r][c]);
+    if (spriteGrid[r][c]) {
+      return getAvailableXY();
+    }
+    spriteGrid[r][c] = true;
+    return [randX, randY] as [number, number];
+  };
+
+  const setXY = (x: number, y: number): void => {
+    let r = Math.round((x - (x % 20)) / 20);
+    let c = Math.round(y / 5);
+    spriteGrid[r][c] = true;
+  };
+
+  const unsetXY = (x: number, y: number): void => {
+    let r = Math.round((x - (x % 20)) / 20);
+    let c = Math.round(y / 5);
+    spriteGrid[r][c] = false;
+  };
+
+  const getXY = (x: number, y: number): boolean => {
+    let r = Math.round((x - (x % 20)) / 20);
+    let c = Math.round(y / 5);
+    return spriteGrid[r][c];
+  };
+
+  const gridPack = {
+    spriteGrid,
+    setXY,
+    unsetXY,
+    getXY,
+  };
 
   return (
     <>
@@ -48,7 +119,54 @@ export default function Home() {
           instruction={benState}
         />
         <NoSSR>
-          <FriendSprite name="kevin" id="friend1" instruction={friendState} />
+          <FriendSprite
+            name="mihir"
+            id="friend1"
+            instruction={friendState}
+            xyi={xyi}
+            gridPack={gridPack}
+            link={"https://mihirsahu.com"}
+          />
+          <FriendSprite
+            name="gen"
+            id="friend2"
+            instruction={friendState2}
+            xyi={xyi2}
+            gridPack={gridPack}
+            link={"https://www.linkedin.com/in/genesis-alvarez/"}
+          />
+          <FriendSprite
+            name="frank"
+            id="friend3"
+            instruction={friendState3}
+            xyi={xyi3}
+            gridPack={gridPack}
+            link={"https://www.linkedin.com/in/frank-bui/"}
+          />
+          <FriendSprite
+            name="alizain"
+            id="friend4"
+            instruction={friendState4}
+            xyi={xyi4}
+            gridPack={gridPack}
+            link={"https://www.alizaincharolia.com/"}
+          />
+          <FriendSprite
+            name="johnny"
+            id="friend5"
+            instruction={friendState5}
+            xyi={xyi5}
+            gridPack={gridPack}
+            link={"https://johnnyle.io/"}
+          />
+          <FriendSprite
+            name="nathan"
+            id="friend6"
+            instruction={friendState6}
+            xyi={xyi6}
+            gridPack={gridPack}
+            link={"https://www.linkedin.com/in/nathvnguyen/"}
+          />
         </NoSSR>
         <div
           className={styles.container}
@@ -60,7 +178,14 @@ export default function Home() {
         >
           <div className={styles.center}>
             <Card>
-              <span className={styles.title}>ben key</span>
+              <span
+                className={styles.title}
+                onClick={() => {
+                  console.log(spriteGrid);
+                }}
+              >
+                ben key
+              </span>
               <span className={styles.subtitle}>software developer</span>
             </Card>
             <br />
