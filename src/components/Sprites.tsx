@@ -7,22 +7,22 @@ import { ins } from "./Types";
 const spriteNames = ["ben", "jacketben", "kevin"] as const;
 type spriteName = typeof spriteNames[number];
 
-export const Sprite = (props: {
+const Sprite = (props: {
   xi: number;
   yi: number;
   name: spriteName;
   id: string;
   instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
+  behavior?: () => void;
 }) => {
   const [instruction, setInstruction] = props.instruction;
   const [tick, setTick] = useState<number>(0);
-
   const [speed, setSpeed] = useState<number>(100);
   const [f, setF] = useState<number>(0);
   const [x, setX] = useState<number>(props.xi);
   const [y, setY] = useState<number>(props.yi);
-  const [actionState, setActionState] = useState<string>("");
 
+  /*/ Sprite Draw Function: Updates only when the frame state changes /*/
   useEffect(() => {
     const canvas = document.getElementById(props.id) as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
@@ -55,26 +55,27 @@ export const Sprite = (props: {
     );
   }, [f]);
 
-  setTimeout(() => {
-    if (instruction && !instruction.complete) {
-      if (instruction.data.action === "walk") {
-        setSpeed(instruction.data.speed);
+  /*/ Sprite Thinker /*/
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!instruction || (instruction && instruction.complete)) {
+        props.behavior && props.behavior();
       }
-    }
-  }, 0);
+    }, 500);
+    return () => clearInterval(intervalId);
+  });
 
-  setTimeout(() => {
-    if (instruction && !instruction.complete) {
-      const { action } = instruction.data;
+  /*/ Sprite Animator /*/
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (instruction && !instruction.complete) {
+        const { action } = instruction.data;
 
-      if (action === "walk") {
-        const { direction, times } = instruction.data;
-
-        if (tick === times * 10) {
-          instruction.complete = true;
-          setF(f - (f % 5));
-          setTick(0);
-        } else {
+        if (action === "walk") {
+          if (speed !== instruction.data.speed) {
+            setSpeed(instruction.data.speed);
+          }
+          const { direction, times } = instruction.data;
           const newF =
             ((f % 5) % 4) +
             1 +
@@ -86,17 +87,32 @@ export const Sprite = (props: {
                 : direction === "NW"
                 ? 2
                 : 3);
-          setX(x + (direction.includes("E") ? 1 : -1));
-          if ((newF % 5) % 2 === (newF > 9 ? 0 : 1)) {
-            setY(y + (direction.includes("S") ? 1 : -1));
+          if (tick === times * 10) {
+            instruction.complete = true;
+            setF(newF - (newF % 5));
+            setTick(0);
+          } else {
+            if (
+              ((instruction.data.direction.includes("W") && x <= 0) ||
+                (instruction.data.direction.includes("E") && x >= 240) ||
+                (instruction.data.direction.includes("N") && y <= 0)) &&
+              props.behavior
+            ) {
+              instruction.complete = true;
+              return;
+            }
+            setX(x + (direction.includes("E") ? 1 : -1));
+            if ((newF % 5) % 2 === (newF > 9 ? 0 : 1)) {
+              setY(y + (direction.includes("S") ? 1 : -1));
+            }
+            setF(newF);
+            setTick(tick + 1);
           }
-          setF(newF);
-          setTick(tick + 1);
-          // console.log(`${instruction.data.times} ${f} ${tick}`);
         }
       }
-    }
-  }, speed);
+    }, speed);
+    return () => clearInterval(intervalId);
+  });
 
   return (
     <canvas
@@ -123,5 +139,66 @@ export const Sprite = (props: {
         alt={props.name}
       />
     </canvas>
+  );
+};
+
+export const BenSprite = (props: {
+  xi: number;
+  yi: number;
+  name: spriteName;
+  id: string;
+  instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
+}) => {
+  return (
+    <Sprite
+      id={props.id}
+      instruction={props.instruction}
+      name={props.name}
+      xi={props.xi}
+      yi={props.yi}
+    />
+  );
+};
+
+export const FriendSprite = (props: {
+  xi: number;
+  yi: number;
+  name: spriteName;
+  id: string;
+  instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
+}) => {
+  const [instruction, setInstruction] = props.instruction;
+  const randomBehavior = () => {
+    const move = Math.floor(Math.random() * 4);
+    if (move === 0) {
+      const randomDirection = Math.floor(Math.random() * 4);
+      const direction =
+        randomDirection === 0
+          ? "SE"
+          : randomDirection === 1
+          ? "SW"
+          : randomDirection === 2
+          ? "NE"
+          : "NW";
+      setInstruction({
+        complete: false,
+        data: {
+          action: "walk",
+          direction,
+          speed: 80,
+          times: Math.floor(Math.random() * 2),
+        },
+      });
+    }
+  };
+  return (
+    <Sprite
+      id={props.id}
+      instruction={props.instruction}
+      name={props.name}
+      xi={props.xi}
+      yi={props.yi}
+      behavior={randomBehavior}
+    />
   );
 };

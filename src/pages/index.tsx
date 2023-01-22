@@ -1,31 +1,30 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DefaultHead } from "@/components/DefaultHead";
 import styles from "@/styles/Home.module.css";
-import { Sprite } from "@/components/Sprites";
+import { BenSprite, FriendSprite } from "@/components/Sprites";
 import { Card, Column, Row } from "@/components/Containers";
 import Image from "next/image";
 import { Icon } from "@/components/Icons";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ins } from "@/components/Types";
 
 export default function Home() {
   const benState = useState<ins | undefined>(undefined);
   const [ben, setBen] = benState;
 
+  const friendState = useState<ins | undefined>(undefined);
+
   useEffect(() => {
-    if (!ben) {
-      setBen({
-        complete: false,
-        data: {
-          action: "walk",
-          direction: "SE",
-          speed: 60,
-          times: 3,
-        },
-      });
-      return;
-    }
-  });
+    setBen({
+      complete: false,
+      data: {
+        action: "walk",
+        direction: "SE",
+        speed: 50,
+        times: 3,
+      },
+    });
+  }, []);
 
   return (
     <>
@@ -39,7 +38,20 @@ export default function Home() {
         }
       `}</style>
       <main>
-        <Sprite name="ben" id="b1" xi={-10} yi={-10} instruction={benState} />
+        <BenSprite
+          name="ben"
+          id="mainBen"
+          xi={-10}
+          yi={-10}
+          instruction={benState}
+        />
+        <FriendSprite
+          name="kevin"
+          id="friend1"
+          xi={200}
+          yi={75}
+          instruction={friendState}
+        />
         <div
           className={styles.container}
           style={{
@@ -73,10 +85,9 @@ export default function Home() {
                     }}
                   >
                     <p className={styles.introduction}>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                      sed do eiusmod tempor incididunt ut labore et dolore magna
-                      aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                      ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                      {
+                        "Hey there! My name is Benjamin Key and I'm currently a student at the University of Houston studying Math and Computer Science! Thanks for checking out my website! I will be updating this frequently. In the meantime, please enjoy your stay!"
+                      }
                     </p>
                   </div>
                 </Row>
