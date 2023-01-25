@@ -2,27 +2,14 @@
 /* eslint-disable @next/next/no-img-element */
 import styles from "@/styles/Home.module.css";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { ins } from "./Types";
-
-const spriteNames = [
-  "ben",
-  "jacketben",
-  "kevin",
-  "mihir",
-  "gen",
-  "frank",
-  "alizain",
-  "johnny",
-  "nathan",
-] as const;
-type spriteName = typeof spriteNames[number];
+import { friendStatesHook, ins, spriteName } from "./Types";
 
 const Sprite = (props: {
   xi: number;
   yi: number;
   name: spriteName;
   id: string;
-  instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
+  instruction: friendStatesHook;
   behavior?: () => void;
   link?: string;
   gridPack?: {
@@ -32,7 +19,12 @@ const Sprite = (props: {
     getXY: (x: number, y: number) => boolean;
   };
 }) => {
-  const [instruction, setInstruction] = props.instruction;
+  const [instructionsObject, setInstructionsObject] = props.instruction;
+  const setInstruction = (input: ins) => {
+    instructionsObject[props.name] = input;
+    setInstructionsObject(instructionsObject);
+  };
+
   const [tick, setTick] = useState<number>(0);
   const [speed, setSpeed] = useState<number>(100);
   const [f, setF] = useState<number>(0);
@@ -89,7 +81,15 @@ const Sprite = (props: {
     if (!props.gridPack) return true;
     const checkX = x + (direction.includes("E") ? 10 : -10);
     const checkY = y + (direction.includes("S") ? 5 : -5);
-    return !props.gridPack.getXY(checkX, checkY);
+    const pixelSize = window.innerWidth / 256;
+    const pixelHeight = window.innerHeight / pixelSize - 16;
+    return !(
+      props.gridPack.getXY(checkX, checkY) ||
+      (direction.includes("W") && x <= 0) ||
+      (direction.includes("E") && x >= 240) ||
+      (direction.includes("N") && y <= 0) ||
+      (direction.includes("S") && y >= pixelHeight - (pixelHeight % 5))
+    );
   };
 
   const setMove = (direction: "SE" | "SW" | "NW" | "NE"): void => {
@@ -102,6 +102,7 @@ const Sprite = (props: {
   /*/ Sprite Thinker /*/
   useEffect(() => {
     const intervalId = setInterval(() => {
+      const instruction = instructionsObject[props.name];
       if (!instruction || (instruction && instruction.complete)) {
         props.behavior && props.behavior();
       }
@@ -112,6 +113,7 @@ const Sprite = (props: {
   /*/ Sprite Animator /*/
   useEffect(() => {
     const intervalId = setInterval(() => {
+      const instruction = instructionsObject[props.name];
       if (instruction && !instruction.complete) {
         const { action } = instruction.data;
 
@@ -170,6 +172,8 @@ const Sprite = (props: {
             setTick(tick + 1);
           }
         }
+      } else {
+        props.gridPack?.setXY(x, y);
       }
     }, speed);
     return () => clearInterval(intervalId);
@@ -211,7 +215,7 @@ export const BenSprite = (props: {
   yi: number;
   name: spriteName;
   id: string;
-  instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
+  instruction: friendStatesHook;
 }) => {
   return (
     <Sprite
@@ -225,12 +229,10 @@ export const BenSprite = (props: {
 };
 
 export const FriendSprite = (props: {
-  // xi: number;
-  // yi: number;
   xyi: [number, number];
   name: spriteName;
   id: string;
-  instruction: [ins | undefined, Dispatch<SetStateAction<ins | undefined>>];
+  instruction: friendStatesHook;
   link?: string;
   gridPack: {
     spriteGrid: boolean[][];
@@ -239,7 +241,7 @@ export const FriendSprite = (props: {
     getXY: (x: number, y: number) => boolean;
   };
 }) => {
-  const [instruction, setInstruction] = props.instruction;
+  const [instructionsObject, setInstructionsObject] = props.instruction;
   const randomBehavior = () => {
     const move = Math.floor(Math.random() * 3);
     if (move === 0) {
@@ -252,15 +254,16 @@ export const FriendSprite = (props: {
           : randomDirection === 2
           ? "NE"
           : "NW";
-      setInstruction({
+      instructionsObject[props.name] = {
         complete: false,
         data: {
           action: "walk",
           direction,
-          speed: 80,
-          times: Math.floor(Math.random() * 2),
+          speed: 60 + Math.floor(Math.random() * 3) * 20,
+          times: Math.floor(Math.random() * 3),
         },
-      });
+      };
+      setInstructionsObject(instructionsObject);
     }
   };
   return (

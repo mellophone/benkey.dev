@@ -6,26 +6,19 @@ import { Card, Column, Row } from "@/components/Containers";
 import Image from "next/image";
 import { Icon } from "@/components/Icons";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { ins } from "@/components/Types";
+import {
+  friendStatesObject,
+  ins,
+  spriteLinks,
+  spriteName,
+  spriteNames,
+} from "@/components/Types";
 import dynamic from "next/dynamic";
 import NoSSR from "@/components/NoSSR";
 
 export default function Home() {
-  const benState = useState<ins | undefined>(undefined);
-  const [ben, setBen] = benState;
-
-  const friendState = useState<ins | undefined>(undefined);
-  const [xyi, setxyi] = useState<[number, number]>([10, 10]);
-  const friendState2 = useState<ins | undefined>(undefined);
-  const [xyi2, setxyi2] = useState<[number, number]>([10, 10]);
-  const friendState3 = useState<ins | undefined>(undefined);
-  const [xyi3, setxyi3] = useState<[number, number]>([10, 10]);
-  const friendState4 = useState<ins | undefined>(undefined);
-  const [xyi4, setxyi4] = useState<[number, number]>([10, 10]);
-  const friendState5 = useState<ins | undefined>(undefined);
-  const [xyi5, setxyi5] = useState<[number, number]>([10, 10]);
-  const friendState6 = useState<ins | undefined>(undefined);
-  const [xyi6, setxyi6] = useState<[number, number]>([10, 10]);
+  const friendStates = useState<friendStatesObject>({});
+  const [xyi, setXYI] = useState<[number, number]>([10, 10]);
 
   const [spriteGrid, setSpriteGrid] = useState<boolean[][]>(() => {
     const arr = [];
@@ -42,13 +35,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    setxyi(getAvailableXY());
-    setxyi2(getAvailableXY());
-    setxyi3(getAvailableXY());
-    setxyi4(getAvailableXY());
-    setxyi5(getAvailableXY());
-    setxyi6(getAvailableXY());
-    setBen({
+    friendStates[0]["ben"] = {
       complete: false,
       data: {
         action: "walk",
@@ -56,7 +43,9 @@ export default function Home() {
         speed: 50,
         times: 3,
       },
-    });
+    };
+
+    friendStates[1](friendStates[0]);
   }, []);
 
   const getAvailableXY = (): [number, number] => {
@@ -65,12 +54,9 @@ export default function Home() {
       Math.floor(Math.random() * 11) * 10 + (randX % 20 === 0 ? 5 : 0);
     let r = (randX - (randX % 20)) / 20;
     let c = randY / 5;
-    console.log(`${randX} ${randY} -> [${r}][${c}]`);
-    // console.log(spriteGrid[r][c]);
     if (spriteGrid[r][c]) {
       return getAvailableXY();
     }
-    spriteGrid[r][c] = true;
     return [randX, randY] as [number, number];
   };
 
@@ -99,6 +85,48 @@ export default function Home() {
     getXY,
   };
 
+  const getSprites = () => {
+    const sprites = [];
+
+    sprites.push(
+      <BenSprite
+        name="ben"
+        id="ben1"
+        xi={-10}
+        yi={-10}
+        instruction={friendStates}
+        key="ben1"
+      />
+    );
+
+    const xyList: [number, number][] = [];
+
+    for (let i = 1; i < spriteNames.length; i++) {
+      const xy = getAvailableXY();
+      const friendSprite = (
+        <NoSSR key={`friend${i}ssr`}>
+          <FriendSprite
+            name={spriteNames[i]}
+            gridPack={gridPack}
+            id={`friend${i}`}
+            xyi={xy}
+            instruction={friendStates}
+            link={spriteLinks[i]}
+            key={`friend${i}`}
+          />
+        </NoSSR>
+      );
+      setXY(xy[0], xy[1]);
+      xyList.push(xy);
+      sprites.push(friendSprite);
+    }
+
+    xyList.forEach((xy) => {
+      unsetXY(xy[0], xy[1]);
+    });
+    return sprites;
+  };
+
   return (
     <>
       <DefaultHead />
@@ -111,63 +139,7 @@ export default function Home() {
         }
       `}</style>
       <main>
-        <BenSprite
-          name="ben"
-          id="mainBen"
-          xi={-10}
-          yi={-10}
-          instruction={benState}
-        />
-        <NoSSR>
-          <FriendSprite
-            name="mihir"
-            id="friend1"
-            instruction={friendState}
-            xyi={xyi}
-            gridPack={gridPack}
-            link={"https://mihirsahu.com"}
-          />
-          <FriendSprite
-            name="gen"
-            id="friend2"
-            instruction={friendState2}
-            xyi={xyi2}
-            gridPack={gridPack}
-            link={"https://www.linkedin.com/in/genesis-alvarez/"}
-          />
-          <FriendSprite
-            name="frank"
-            id="friend3"
-            instruction={friendState3}
-            xyi={xyi3}
-            gridPack={gridPack}
-            link={"https://www.linkedin.com/in/frank-bui/"}
-          />
-          <FriendSprite
-            name="alizain"
-            id="friend4"
-            instruction={friendState4}
-            xyi={xyi4}
-            gridPack={gridPack}
-            link={"https://www.alizaincharolia.com/"}
-          />
-          <FriendSprite
-            name="johnny"
-            id="friend5"
-            instruction={friendState5}
-            xyi={xyi5}
-            gridPack={gridPack}
-            link={"https://johnnyle.io/"}
-          />
-          <FriendSprite
-            name="nathan"
-            id="friend6"
-            instruction={friendState6}
-            xyi={xyi6}
-            gridPack={gridPack}
-            link={"https://www.linkedin.com/in/nathvnguyen/"}
-          />
-        </NoSSR>
+        {getSprites()}
         <div
           className={styles.container}
           style={{
@@ -178,14 +150,7 @@ export default function Home() {
         >
           <div className={styles.center}>
             <Card>
-              <span
-                className={styles.title}
-                onClick={() => {
-                  console.log(spriteGrid);
-                }}
-              >
-                ben key
-              </span>
+              <span className={styles.title}>ben key</span>
               <span className={styles.subtitle}>software developer</span>
             </Card>
             <br />
