@@ -14,6 +14,10 @@ export type ins = {
     | {
         action: "blink";
         speed: number;
+      }
+    | {
+        action: "hop";
+        speed: number;
       };
   complete: boolean;
 };
@@ -32,6 +36,10 @@ export const spriteNames = [
   "giselle",
   "bryant",
   "nicole",
+  "nate",
+  "wahab",
+  "tariq",
+  "christian",
 ] as const;
 
 export const spriteLinks = [
@@ -48,6 +56,10 @@ export const spriteLinks = [
   "https://www.linkedin.com/in/giselleruiz/",
   "https://bnle.me/",
   "https://www.linkedin.com/in/nicoleperezp/",
+  "https://www.linkedin.com/in/nathan-hunt-bt08",
+  "https://www.linkedin.com/in/wahab-javed/",
+  "https://tachorzy.com/",
+  "https://www.linkedin.com/in/christian-ayala--/",
 ];
 
 export type spriteName = typeof spriteNames[number];

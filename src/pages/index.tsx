@@ -15,13 +15,16 @@ import {
 } from "@/components/Types";
 import dynamic from "next/dynamic";
 import NoSSR from "@/components/NoSSR";
+import { Fountain } from "@/components/Objects";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 export default function Home() {
   const friendStates = useState<friendStatesObject>({});
   const [xyi, setXYI] = useState<[number, number]>([10, 10]);
 
   const [spriteGrid, setSpriteGrid] = useState<boolean[][]>(() => {
-    const arr = [];
+    const arr: boolean[][] = [];
     for (let x = 0; x < 13; x++) {
       const row = [];
       for (let y = 0; y < 50; y++) {
@@ -29,6 +32,36 @@ export default function Home() {
       }
       arr.push(row);
     }
+    const fountain = [
+      [4, 8],
+      [4, 9],
+      [4, 10],
+      [5, 6],
+      [5, 7],
+      [5, 8],
+      [5, 9],
+      [5, 10],
+      [5, 11],
+      [5, 12],
+      [6, 5],
+      [6, 6],
+      [6, 7],
+      [6, 8],
+      [6, 9],
+      [6, 10],
+      [6, 11],
+      [6, 12],
+      [6, 13],
+      [7, 7],
+      [7, 8],
+      [7, 9],
+      [7, 10],
+      [7, 11],
+      [8, 9],
+    ];
+    fountain.forEach(([x, y]) => {
+      arr[x][y] = true;
+    });
     arr[0][0] = true;
     arr[1][1] = true;
     return arr;
@@ -89,14 +122,16 @@ export default function Home() {
     const sprites = [];
 
     sprites.push(
-      <BenSprite
-        name="ben"
-        id="ben1"
-        xi={-10}
-        yi={-10}
-        instruction={friendStates}
-        key="ben1"
-      />
+      <NoSSR key={`benssr`}>
+        <BenSprite
+          name="ben"
+          id="ben1"
+          xi={-10}
+          yi={-10}
+          instruction={friendStates}
+          key="ben1"
+        />
+      </NoSSR>
     );
 
     const xyList: [number, number][] = [];
@@ -126,6 +161,7 @@ export default function Home() {
     });
     return sprites;
   };
+  const router = useRouter();
 
   return (
     <>
@@ -140,6 +176,7 @@ export default function Home() {
       `}</style>
       <main>
         {getSprites()}
+        <Fountain xi={87} yi={29} />
         <div
           className={styles.container}
           style={{
@@ -150,7 +187,25 @@ export default function Home() {
         >
           <div className={styles.center}>
             <Card>
-              <span className={styles.title}>ben key</span>
+              <span
+                className={styles.title}
+                onClick={() => {
+                  friendStates[0]["ben"] = {
+                    complete: false,
+                    data: {
+                      action: "walk",
+                      direction: "NW",
+                      speed: 50,
+                      times: 3,
+                    },
+                  };
+                  setTimeout(() => {
+                    router.reload();
+                  }, 1500);
+                }}
+              >
+                ben key
+              </span>
               <span className={styles.subtitle}>software developer</span>
             </Card>
             <br />

@@ -30,22 +30,33 @@ const Sprite = (props: {
   const [f, setF] = useState<number>(0);
   const [x, setX] = useState<number>(props.xi);
   const [y, setY] = useState<number>(props.yi);
+  const [offsetY, setOffsetY] = useState<number>(0);
+  const [mouseIn, setMouseIn] = useState<boolean>(false);
 
   /*/ Sprite Draw Function: Updates only when the frame state changes /*/
   const redraw = () => {
+    const shadowCanvas = document.getElementById(
+      `${props.id}-shadow`
+    ) as HTMLCanvasElement;
+    const shadowctx = shadowCanvas.getContext("2d");
+    if (!shadowctx) {
+      return;
+    }
+    shadowctx.clearRect(0, 0, 100, 100 * (17 / 16));
+
+    const shad = document.getElementById("shadow") as HTMLImageElement;
+    const sw = shad.naturalWidth;
+    const sh = shad.naturalHeight;
+    shadowctx.drawImage(shad, 0, 0, sw, sh, 0, 0, 100, 100 * (17 / 16));
+    shad.onload = redraw;
+
     const canvas = document.getElementById(props.id) as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       alert("!ctx");
       return;
     }
-    ctx.clearRect(0, 0, 100, 100 * (17 / 16));
-
-    const shad = document.getElementById("shadow") as HTMLImageElement;
-    const sw = shad.naturalWidth;
-    const sh = shad.naturalHeight;
-    ctx.drawImage(shad, 0, 0, sw, sh, 0, 0, 100, 100 * (17 / 16));
-    shad.onload = redraw;
+    ctx.clearRect(0, 0, 100, 100);
 
     const image = document.getElementById(props.name) as HTMLImageElement;
     const nw = image.naturalWidth;
@@ -54,14 +65,14 @@ const Sprite = (props: {
     const ch = nh / 4;
     ctx.drawImage(
       image,
-      cw * (f % 5),
-      cw * Math.floor(f / 5),
-      cw,
-      ch,
-      0,
-      0,
-      100,
-      100
+      cw * (f % 5), // crop distance from left
+      cw * Math.floor(f / 5), // crop distance from top
+      cw, // width of crop
+      ch, // height of crop
+      0, // x on canvas to draw
+      0, // y on canvas to draw
+      100, // width of canvas to draw
+      100 // height of canvas to draw
     );
     image.onload = redraw;
   };
@@ -171,6 +182,21 @@ const Sprite = (props: {
             setF(newF);
             setTick(tick + 1);
           }
+        } else if (action === "hop") {
+          setF(1);
+          if (tick >= 12) {
+            setF(0);
+          }
+          if (tick < 6) {
+            setOffsetY(offsetY + 1);
+          } else if (tick < 12) {
+            setOffsetY(offsetY - 1);
+          } else if (!mouseIn) {
+            setTick(0);
+            instruction.complete = true;
+            return;
+          }
+          setTick(tick + 1);
         }
       } else {
         props.gridPack?.setXY(x, y);
@@ -179,10 +205,52 @@ const Sprite = (props: {
     return () => clearInterval(intervalId);
   });
 
+  const [benType, setBenType] = useState<number>(
+    typeof window === "undefined"
+      ? 0
+      : parseInt(localStorage.getItem("benType") || "0")
+  );
+
+  useEffect(() => {
+    setBenType(parseInt(localStorage.getItem("benType") || "0"));
+  });
+
   return (
-    <a href={props.link} target="_blank" rel="noopener noreferrer">
+    <a
+      href={props.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => {
+        if (props.name == "ben") {
+          const current = parseInt(localStorage.getItem("benType") || "0");
+          localStorage.setItem("benType", `${(current + 1) % 3}`);
+          console.log(localStorage);
+          setBenType((current + 1) % 3);
+          redraw();
+        }
+      }}
+      style={{ cursor: "pointer" }}
+      onMouseMove={() => {
+        if (!props.gridPack) return;
+        setSpeed(15);
+        const instruction = instructionsObject[props.name];
+        if (!instruction || instruction.complete) {
+          setInstruction({
+            complete: false,
+            data: {
+              action: "hop",
+              speed: 15,
+            },
+          });
+        }
+        setMouseIn(true);
+      }}
+      onMouseLeave={() => {
+        setMouseIn(false);
+      }}
+    >
       <canvas
-        id={props.id}
+        id={`${props.id}-shadow`}
         width={100}
         height={100 * (17 / 16)}
         className={styles.canvas}
@@ -199,10 +267,23 @@ const Sprite = (props: {
           src={`/shadow.png`}
           alt="shadow"
         />
+      </canvas>
+      <canvas
+        id={props.id}
+        width={100}
+        height={100}
+        className={styles.canvas}
+        style={{
+          top: `calc( (100vw / 256)*${y - offsetY})`,
+          left: `calc( (100vw / 256)*${x})`,
+          width: `calc(100vw / 16)`,
+          zIndex: y + 10,
+        }}
+      >
         <img
           style={{ display: "none" }}
           id={props.name}
-          src={`/${props.name}.png`}
+          src={`/${props.name == "ben" ? `ben${benType}` : props.name}.png`}
           alt={props.name}
         />
       </canvas>
