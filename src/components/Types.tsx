@@ -3,7 +3,6 @@ export type ins = {
     | {
         action: "wave";
         speed: number;
-        times: number;
       }
     | {
         action: "walk";
@@ -18,6 +17,12 @@ export type ins = {
     | {
         action: "hop";
         speed: number;
+      }
+    | {
+        action: "dance";
+        style: "simple" | "jumpy" | "army";
+        speed: number;
+        times: number;
       };
   complete: boolean;
 };
@@ -40,6 +45,7 @@ export const spriteNames = [
   "wahab",
   "tariq",
   "christian",
+  "fernando",
 ] as const;
 
 export const spriteLinks = [
@@ -60,6 +66,7 @@ export const spriteLinks = [
   "https://www.linkedin.com/in/wahab-javed/",
   "https://tachorzy.com/",
   "https://www.linkedin.com/in/christian-ayala--/",
+  "https://fndo.netlify.app/",
 ];
 
 export type spriteName = typeof spriteNames[number];

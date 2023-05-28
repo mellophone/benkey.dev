@@ -60,7 +60,7 @@ export default function Home() {
       [8, 9],
     ];
     fountain.forEach(([x, y]) => {
-      arr[x][y] = true;
+      arr[x][y + 6] = true;
     });
     arr[0][0] = true;
     arr[1][1] = true;
@@ -74,11 +74,29 @@ export default function Home() {
         action: "walk",
         direction: "SE",
         speed: 50,
-        times: 3,
+        times: 5,
       },
     };
-
     friendStates[1](friendStates[0]);
+    window.onkeydown = (e) => {
+      if (friendStates[0]["ben"] && !friendStates[0]["ben"].complete) return;
+      friendStates[0]["ben"] = {
+        complete: false,
+        data: {
+          action: "walk",
+          direction:
+            e.key == "w"
+              ? "NE"
+              : e.key == "d"
+              ? "SE"
+              : e.key == "s"
+              ? "SW"
+              : "NW",
+          speed: 50,
+          times: 1,
+        },
+      };
+    };
   }, []);
 
   const getAvailableXY = (): [number, number] => {
@@ -176,16 +194,64 @@ export default function Home() {
       `}</style>
       <main>
         {getSprites()}
-        <Fountain xi={87} yi={29} />
+        {/* <Fountain xi={87} yi={29} /> */}
         <div
           className={styles.container}
           style={{
-            backgroundImage: `url(/ground.png)`,
+            backgroundImage: `url(/parktest.png)`,
             backgroundSize: "100%",
             backgroundRepeat: "repeat",
           }}
         >
-          <div className={styles.center}>
+          <button
+            onClick={() => {
+              friendStates[0]["ben"] = {
+                complete: false,
+                data: {
+                  action: "dance",
+                  style: "simple",
+                  speed: 175,
+                  times: 3,
+                },
+              };
+              friendStates[1](friendStates[0]);
+            }}
+          >
+            Dance 1
+          </button>
+          <button
+            onClick={() => {
+              friendStates[0]["ben"] = {
+                complete: false,
+                data: {
+                  action: "dance",
+                  style: "jumpy",
+                  speed: 100,
+                  times: 4,
+                },
+              };
+              friendStates[1](friendStates[0]);
+            }}
+          >
+            Dance 2
+          </button>
+          <button
+            onClick={() => {
+              friendStates[0]["ben"] = {
+                complete: false,
+                data: {
+                  action: "dance",
+                  style: "army",
+                  speed: 75,
+                  times: 2,
+                },
+              };
+              friendStates[1](friendStates[0]);
+            }}
+          >
+            Dance 3
+          </button>
+          {/* <div className={styles.center}>
             <Card>
               <span
                 className={styles.title}
@@ -249,7 +315,7 @@ export default function Home() {
               name="spotify"
               link="https://open.spotify.com/user/iep6b6xqxe1hrs734pehvz3rd"
             />
-          </div>
+          </div> */}
         </div>
       </main>
     </>

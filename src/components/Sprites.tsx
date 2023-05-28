@@ -32,6 +32,7 @@ const Sprite = (props: {
   const [y, setY] = useState<number>(props.yi);
   const [offsetY, setOffsetY] = useState<number>(0);
   const [mouseIn, setMouseIn] = useState<boolean>(false);
+  const [spriteCols, setSpriteCols] = useState<number>(5);
 
   /*/ Sprite Draw Function: Updates only when the frame state changes /*/
   const redraw = () => {
@@ -48,7 +49,7 @@ const Sprite = (props: {
     const sw = shad.naturalWidth;
     const sh = shad.naturalHeight;
     shadowctx.drawImage(shad, 0, 0, sw, sh, 0, 0, 100, 100 * (17 / 16));
-    shad.onload = redraw;
+    shad.onload = redraw; // THIS DOESN'T WORK, FIX
 
     const canvas = document.getElementById(props.id) as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
@@ -61,12 +62,14 @@ const Sprite = (props: {
     const image = document.getElementById(props.name) as HTMLImageElement;
     const nw = image.naturalWidth;
     const nh = image.naturalHeight;
-    const cw = nw / 5;
+    // const cw = nw / 5;
+    const cw = 160;
+    setSpriteCols(nw / cw);
     const ch = nh / 4;
     ctx.drawImage(
       image,
-      cw * (f % 5), // crop distance from left
-      cw * Math.floor(f / 5), // crop distance from top
+      cw * (f % spriteCols), // crop distance from left
+      cw * Math.floor(f / spriteCols), // crop distance from top
       cw, // width of crop
       ch, // height of crop
       0, // x on canvas to draw
@@ -134,9 +137,9 @@ const Sprite = (props: {
           }
           const { direction, times } = instruction.data;
           const newF =
-            ((f % 5) % 4) +
+            ((f % spriteCols) % 4) +
             1 +
-            5 *
+            spriteCols *
               (direction === "SE"
                 ? 0
                 : direction === "SW"
@@ -146,7 +149,7 @@ const Sprite = (props: {
                 : 3);
           if (tick === times * 10) {
             instruction.complete = true;
-            setF(newF - (newF % 5));
+            setF(newF - (newF % spriteCols));
             setTick(0);
             return;
           } else {
@@ -157,7 +160,7 @@ const Sprite = (props: {
                 (instruction.data.direction.includes("E") && x >= 240) ||
                 (instruction.data.direction.includes("N") && y <= 0) ||
                 (instruction.data.direction.includes("S") &&
-                  y >= pixelHeight - (pixelHeight % 5))) &&
+                  y >= pixelHeight - (pixelHeight % spriteCols))) &&
               props.behavior &&
               tick === 0
             ) {
@@ -167,7 +170,7 @@ const Sprite = (props: {
             if (tick % 10 == 0) {
               if (!canMove(instruction.data.direction)) {
                 instruction.complete = true;
-                setF(newF - (newF % 5));
+                setF(newF - (newF % spriteCols));
                 setTick(0);
                 props.gridPack?.setXY(x, y);
                 return;
@@ -176,7 +179,7 @@ const Sprite = (props: {
               props.gridPack?.unsetXY(x, y);
             }
             setX(x + (direction.includes("E") ? 1 : -1));
-            if ((newF % 5) % 2 === (newF > 9 ? 0 : 1)) {
+            if ((newF % spriteCols) % 2 === (newF >= spriteCols * 2 ? 0 : 1)) {
               setY(y + (direction.includes("S") ? 1 : -1));
             }
             setF(newF);
@@ -196,6 +199,46 @@ const Sprite = (props: {
             instruction.complete = true;
             return;
           }
+          setTick(tick + 1);
+        } else if (action == "wave") {
+          const waves = [5, 6, 7, 8, 9, 8, 9, 8, 7, 6, 5];
+          if (tick == waves.length) {
+            setTick(0);
+            setF(0);
+            instruction.complete = true;
+            return;
+          }
+          if (speed !== instruction.data.speed) {
+            setSpeed(instruction.data.speed);
+          }
+          setF(waves[tick]);
+          setTick(tick + 1);
+        } else if (action == "dance") {
+          let poses: number[] = [];
+          if (instruction.data.style == "simple") {
+            poses = [11, 10, 12, 10];
+          } else if (instruction.data.style == "jumpy") {
+            poses = [13, 14, 15, 14];
+          } else if (instruction.data.style == "army") {
+            poses = [
+              10, 16, 17, 18, 19, 20, 21, 22, 23, 24, 10, 10, 10, 10, 24, 23,
+              22, 21, 20, 19, 18, 17, 16, 10, 10, 10,
+            ];
+          }
+          if (tick % poses.length === 0) {
+            if (instruction.data.times && instruction.data.times > 0) {
+              instruction.data.times--;
+            } else {
+              setTick(0);
+              setF(0);
+              instruction.complete = true;
+              return;
+            }
+          }
+          if (speed !== instruction.data.speed) {
+            setSpeed(instruction.data.speed);
+          }
+          setF(poses[tick % poses.length]);
           setTick(tick + 1);
         }
       } else {
@@ -231,7 +274,9 @@ const Sprite = (props: {
       }}
       style={{ cursor: "pointer" }}
       onMouseMove={() => {
-        if (!props.gridPack) return;
+        if (props.name == "ben") {
+          return;
+        }
         setSpeed(15);
         const instruction = instructionsObject[props.name];
         if (!instruction || instruction.complete) {
@@ -244,6 +289,18 @@ const Sprite = (props: {
           });
         }
         setMouseIn(true);
+      }}
+      onMouseEnter={() => {
+        if (props.name == "ben") {
+          setInstruction({
+            complete: false,
+            data: {
+              action: "wave",
+              speed: 60,
+            },
+          });
+          return;
+        }
       }}
       onMouseLeave={() => {
         setMouseIn(false);
@@ -342,6 +399,30 @@ export const FriendSprite = (props: {
           direction,
           speed: 60 + Math.floor(Math.random() * 3) * 20,
           times: Math.floor(Math.random() * 3),
+        },
+      };
+      setInstructionsObject(instructionsObject);
+      return;
+    }
+    const dance = Math.floor(Math.random() * 3) + 1;
+    if (dance === 0) {
+      const styleNum = Math.floor(Math.random() * 3);
+      const styles: ("simple" | "jumpy" | "army")[] = [
+        "simple",
+        "jumpy",
+        "army",
+      ];
+      const styleSpeeds = [175, 100, 75];
+      const style = styles[styleNum];
+      const speed = styleSpeeds[styleNum];
+
+      instructionsObject[props.name] = {
+        complete: false,
+        data: {
+          action: "dance",
+          style,
+          speed,
+          times: Math.floor(Math.random() * 2) + 1,
         },
       };
       setInstructionsObject(instructionsObject);
