@@ -5,7 +5,10 @@ export const DefaultHead = () => (
     <Head>
       <title>Ben Key</title>
       <meta name="description" content="Welcome to my website!" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      />
       <link rel="icon" href="/benicon.png" />
 
       <meta property="og:image" content="/preview.png" />

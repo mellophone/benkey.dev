@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { DefaultHead } from "@/components/DefaultHead";
 import styles from "@/styles/Home.module.css";
@@ -190,12 +191,28 @@ export default function Home() {
           padding: 0px;
           overflow: hidden;
           position: relative;
+          background-color: black;
         }
       `}</style>
       <main>
-        {getSprites()}
+        <img
+          alt="Home Area"
+          src={"/SpawnTest.png"}
+          // width={310 * 7.5}
+          // height={164 * 7.5}
+          style={{
+            margin: 0,
+            padding: 0,
+            // width: 310 * 7.5,
+            height: "calc(100vh * 164 / 140)",
+            // minWidth: `max(${31000 / 164}lvh, 100lvw)`,
+            minHeight: `${16400 / 310}lvw`,
+            aspectRatio: 310 / 164,
+          }}
+        />
+        {/* {getSprites()} */}
         {/* <Fountain xi={87} yi={29} /> */}
-        <div
+        {/* <div
           className={styles.container}
           style={{
             backgroundImage: `url(/parktest.png)`,
@@ -251,7 +268,7 @@ export default function Home() {
           >
             Dance 3
           </button>
-          {/* <div className={styles.center}>
+          <div className={styles.center}>
             <Card>
               <span
                 className={styles.title}
@@ -315,8 +332,8 @@ export default function Home() {
               name="spotify"
               link="https://open.spotify.com/user/iep6b6xqxe1hrs734pehvz3rd"
             />
-          </div> */}
-        </div>
+          </div>
+        </div> */}
       </main>
     </>
   );
