@@ -1,5 +1,6 @@
 import { Texture } from "@/types/MapObject";
 import Entity from "./Entity";
+import { RenderObject } from "../types/RenderObject";
 
 export default class StaticEntity extends Entity {
   private slices = [];
@@ -11,11 +12,7 @@ export default class StaticEntity extends Entity {
     super();
   }
 
-  drawImageWithOffset = (
-    context: CanvasRenderingContext2D,
-    pxOff: number,
-    pyOff: number
-  ) => {
-    // context.drawImage(...());
+  getRenderObjects = (): RenderObject[] => {
+    return [];
   };
 }

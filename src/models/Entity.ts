@@ -1,3 +1,5 @@
+import { RenderObject } from "../types/RenderObject";
+
 export default abstract class Entity {
   /**
    * stores:
@@ -13,9 +15,5 @@ export default abstract class Entity {
 
   constructor() {}
 
-  abstract drawImageWithOffset: (
-    context: CanvasRenderingContext2D,
-    pxOff: number,
-    pyOff: number
-  ) => void;
+  abstract getRenderObjects: () => RenderObject[];
 }
