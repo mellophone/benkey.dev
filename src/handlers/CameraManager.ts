@@ -1,4 +1,4 @@
-import { CameraProps, CameraSpecs } from "../utils/types";
+// NEEDS MAJOR REFACTOR :: OLD VERSION
 
 class CameraManager {
   private cameraProps: CameraProps;
@@ -71,3 +71,19 @@ class CameraManager {
 }
 
 export default CameraManager;
+
+export type CameraSpecs = {
+  camX: number;
+  camY: number;
+  zoom: number;
+};
+
+export type CameraProps = {
+  x: number;
+  y: number;
+  zoom: number;
+  mapWidth: number;
+  mapHeight: number;
+  centerX?: number;
+  centerY?: number;
+};

@@ -4,7 +4,7 @@ import {
   isoToSnapPos,
   mousePosToIso,
   mousePosToSnapPos,
-} from "@/components/gridConversions";
+} from "@/utils/gridConversions";
 import Head from "next/head";
 import {
   CSSProperties,
