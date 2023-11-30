@@ -30,6 +30,9 @@ export const MapCanvas = (props: { mapObject: MapObject }) => {
       style={{
         backgroundColor: "magenta",
         imageRendering: "pixelated",
+        position: "fixed",
+        top: 0,
+        left: 0,
       }}
       onMouseMove={(ev) => {}}
       onMouseLeave={() => {}}

@@ -13,7 +13,5 @@ export default abstract class Entity {
    *    only info in relation to the grid (not the screen)
    */
 
-  constructor() {}
-
   abstract getRenderObjects: () => RenderObject[];
 }

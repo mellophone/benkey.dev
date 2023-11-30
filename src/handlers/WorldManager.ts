@@ -10,7 +10,7 @@ const hertzToMs = (hertz: number) => 1000 / hertz;
 export default class WorldManager {
   private renderer = new Renderer(this.mapObject);
   private imageLoader = new ImageLoader(this.mapObject);
-  // private cameraManager = new CameraManager()
+  private cameraManager = new CameraManager();
 
   constructor(private readonly mapObject: MapObject) {}
 
@@ -20,17 +20,27 @@ export default class WorldManager {
   };
 
   public startWorld = (canvas: HTMLCanvasElement) => {
-    const { renderer, imageLoader } = this;
+    this.cameraManager.setCanvas(canvas);
+    this.renderer.setCanvas(canvas);
 
-    const imageCollection = imageLoader.getLoadedImages();
-    renderer.addImagesToCollection(imageCollection);
+    const imageCollection = this.imageLoader.getLoadedImages();
+    this.renderer.addImagesToCollection(imageCollection);
 
     const worldLoop = setInterval(() => {
       // WORLD UPDATES
     }, hertzToMs(UPDATES_PER_SECOND));
 
     const frameLoop = setInterval(() => {
-      renderer.render(canvas);
+      this.cameraManager.focus();
+      this.renderer.render(canvas);
+
+      const context = this.renderer.getContext();
+
+      if (!context) return;
+
+      const center = this.cameraManager.getCenter();
+      context.fillStyle = "#ff0000";
+      context.fillRect(center[0] - 1, center[1] - 1, 2, 2);
     }, hertzToMs(FRAMES_PER_SECOND));
   };
 }
