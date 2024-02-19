@@ -33,6 +33,8 @@ export const MapCanvas = (props: { mapObject: MapObject }) => {
         imageRendering: "pixelated",
         position: "fixed",
         outline: "none",
+        zoom: 2,
+        touchAction: "none",
       }}
       onMouseMove={(ev) => {}}
       onMouseLeave={() => {}}

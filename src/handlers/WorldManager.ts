@@ -65,8 +65,11 @@ export default class WorldManager {
   };
 
   public mouseMoveListener = (ev: MouseEvent) => {
-    this.mouse[0] = ev.x;
-    this.mouse[1] = ev.y;
+    const zoom = this.canvas.style.getPropertyValue("zoom");
+    if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
+
+    this.mouse[0] = ev.x / parseInt(zoom);
+    this.mouse[1] = ev.y / parseInt(zoom);
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {
@@ -84,5 +87,11 @@ export default class WorldManager {
 
     resizeCanvas();
     window.onresize = resizeCanvas;
+  };
+
+  public preventMobileGesture = () => {
+    document.addEventListener("gesturestart", (e) => {
+      e.preventDefault();
+    });
   };
 }
