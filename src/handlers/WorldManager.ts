@@ -1,6 +1,6 @@
+import FrameDrawer from "./FrameDrawer";
 import ImageLoader from "./ImageLoader";
 import { MapObject } from "@/types/MapObject";
-import { mousePosToSnapPos } from "../utils/gridConversions";
 
 const UPDATES_PER_SECOND = 40;
 const FRAMES_PER_SECOND = 60;
@@ -8,10 +8,11 @@ const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
   public context: CanvasRenderingContext2D;
-  public imageLoader = new ImageLoader(this.mapObject);
   public mouse: [number, number] = [0, 0];
+  public imageLoader = new ImageLoader(this.mapObject);
+  public frameDrawer = new FrameDrawer(this);
 
-  private devMode = false;
+  public devMode = false;
   private worldLoop?: NodeJS.Timer;
   private frameLoop?: NodeJS.Timer;
 
@@ -51,18 +52,9 @@ export default class WorldManager {
 
   public startFrameLoop = () => {
     this.frameLoop = setInterval(
-      this.drawCurrentFrame,
+      this.frameDrawer.drawCurrentFrame,
       hertzToMs(FRAMES_PER_SECOND)
     );
-  };
-
-  public drawCurrentFrame = () => {
-    const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
-    this.context.drawImage(mapImage, 0, 0);
-
-    if (this.devMode) {
-      this.drawDevModeLayer();
-    }
   };
 
   public stopFrameLoop = () => {
@@ -89,34 +81,5 @@ export default class WorldManager {
 
     resizeCanvas();
     window.onresize = resizeCanvas;
-  };
-
-  public drawDevModeLayer = () => {
-    this.drawGrid();
-    this.drawSelector();
-
-    this.context.strokeStyle = "red";
-    this.context.strokeText("DEV MODE", 0, window.innerHeight);
-  };
-
-  public drawGrid = () => {
-    const outline = this.imageLoader.getLoadedImage("/redoutline.png");
-    const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
-
-    const numRows = Math.floor(mapImage.height / 10);
-    const numCols = Math.floor((mapImage.width - 10) / 10);
-
-    for (let r = 0; r < numRows; r++) {
-      for (let c = 0; c < numCols; c++) {
-        this.context.drawImage(outline, 10 * c, 10 * r + (c % 2) * 5);
-      }
-    }
-  };
-
-  public drawSelector = () => {
-    const selectorImage = this.imageLoader.getLoadedImage("/selector.png");
-    const snapPos = mousePosToSnapPos(...this.mouse);
-
-    this.context.drawImage(selectorImage, snapPos[0] - 1, snapPos[1] - 1);
   };
 }
