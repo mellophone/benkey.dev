@@ -7,7 +7,6 @@ const CANVAS_ID = "canvas-area";
 
 export const MapCanvas = (props: { mapObject: MapObject }) => {
   const { mapObject } = props;
-
   const [worldManager] = useState<WorldManager>(new WorldManager(mapObject));
 
   useEffect(() => onStartup(), []);
@@ -26,13 +25,13 @@ export const MapCanvas = (props: { mapObject: MapObject }) => {
 
   return (
     <canvas
+      tabIndex={1}
       id={CANVAS_ID}
       style={{
-        backgroundColor: "magenta",
+        backgroundColor: "black",
         imageRendering: "pixelated",
         position: "fixed",
-        top: 0,
-        left: 0,
+        outline: "none",
       }}
       onMouseMove={(ev) => {}}
       onMouseLeave={() => {}}

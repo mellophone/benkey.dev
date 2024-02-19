@@ -3,7 +3,12 @@ import { MapObject } from "@/types/MapObject";
 
 export default class ImageLoader {
   private currentlyLoading: number;
-  private defaultSrcList = ["/ben0.png", "/selector.png", "/shadow.png"];
+  private defaultSrcList = [
+    "/ben0.png",
+    "/selector.png",
+    "/shadow.png",
+    "/redoutline.png",
+  ];
 
   private fullSrcList: string[];
   private loadedImageCollection: ImageCollection = {};

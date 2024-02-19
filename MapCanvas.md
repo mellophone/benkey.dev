@@ -15,3 +15,5 @@ This is responsible for loading every image that will be used by the Map Canvas.
 ### Camera Manager
 
 This class manages the "camera" that observes the world. This is done by returning the "zoom" style attribute of the Map Canvas's \<canvas> tag and two offset values for the x-direction and y-direction.
+
+The camera should primarily scale to the height of the canvas while making sure the map entirely fills the frame.
