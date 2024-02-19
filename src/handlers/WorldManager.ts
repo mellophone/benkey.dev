@@ -1,5 +1,5 @@
-import { MapObject } from "@/types/MapObject";
 import ImageLoader from "./ImageLoader";
+import { MapObject } from "@/types/MapObject";
 import { mousePosToSnapPos } from "../utils/gridConversions";
 
 const UPDATES_PER_SECOND = 40;
@@ -9,7 +9,11 @@ const hertzToMs = (hertz: number) => 1000 / hertz;
 export default class WorldManager {
   public context: CanvasRenderingContext2D;
   public imageLoader = new ImageLoader(this.mapObject);
+  public mouse: [number, number] = [0, 0];
+
   private devMode = false;
+  private worldLoop?: NodeJS.Timer;
+  private frameLoop?: NodeJS.Timer;
 
   constructor(
     public canvas: HTMLCanvasElement,
@@ -19,42 +23,61 @@ export default class WorldManager {
     if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
     this.context = canvasContext;
 
+    this.startAutomaticResizing();
+    this.canvas.onmousemove = this.mouseMoveListener;
+    this.canvas.onkeydown = this.keyDownListener;
+
     this.imageLoader.onLoadingComplete = this.startWorld;
     this.imageLoader.startImageLoading(canvas);
   }
 
   public startWorld = () => {
-    this.startAutomaticResizing();
+    this.startWorldLoop();
+    this.startFrameLoop();
+  };
 
-    const imageCollection = this.imageLoader.getLoadedImages();
-    const mapImage = imageCollection[this.mapObject.mapSrc];
-    let mouse: [number, number] = [-1, -1];
-    this.canvas.onmousemove = (ev) => {
-      mouse[0] = ev.x;
-      mouse[1] = ev.y;
-    };
+  public startWorldLoop = () => {
+    this.worldLoop = setInterval(
+      this.manageUpdates,
+      hertzToMs(UPDATES_PER_SECOND)
+    );
+  };
 
-    this.canvas.onkeydown = (ev) => {
-      if (ev.key.toLocaleLowerCase() === "`") {
-        this.devMode = !this.devMode;
-      }
-    };
+  public manageUpdates = () => {};
 
-    /**
-     * Loop for all mechanical world updates
-     */
-    const worldLoop = setInterval(() => {}, hertzToMs(UPDATES_PER_SECOND));
+  public stopWorldLoop = () => {
+    clearInterval(this.worldLoop);
+  };
 
-    /**
-     * Loop for all visual frame updates
-     */
-    const frameLoop = setInterval(() => {
-      this.context.drawImage(mapImage, 0, 0);
+  public startFrameLoop = () => {
+    this.frameLoop = setInterval(
+      this.drawCurrentFrame,
+      hertzToMs(FRAMES_PER_SECOND)
+    );
+  };
 
-      if (this.devMode) {
-        this.drawDevModeLayer(this.context, mapImage, mouse);
-      }
-    }, hertzToMs(FRAMES_PER_SECOND));
+  public drawCurrentFrame = () => {
+    const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
+    this.context.drawImage(mapImage, 0, 0);
+
+    if (this.devMode) {
+      this.drawDevModeLayer();
+    }
+  };
+
+  public stopFrameLoop = () => {
+    clearInterval(this.frameLoop);
+  };
+
+  public mouseMoveListener = (ev: MouseEvent) => {
+    this.mouse[0] = ev.x;
+    this.mouse[1] = ev.y;
+  };
+
+  public keyDownListener = (ev: KeyboardEvent) => {
+    if (ev.key.toLocaleLowerCase() === "`") {
+      this.devMode = !this.devMode;
+    }
   };
 
   public startAutomaticResizing = () => {
@@ -68,42 +91,32 @@ export default class WorldManager {
     window.onresize = resizeCanvas;
   };
 
-  public drawDevModeLayer = (
-    context: CanvasRenderingContext2D,
-    map: HTMLImageElement,
-    mouse: [number, number]
-  ) => {
-    this.drawGrid(context, map);
-    this.drawSelector(context, mouse);
+  public drawDevModeLayer = () => {
+    this.drawGrid();
+    this.drawSelector();
 
-    context.strokeStyle = "red";
-    context.strokeText("DEV MODE", 0, window.innerHeight);
+    this.context.strokeStyle = "red";
+    this.context.strokeText("DEV MODE", 0, window.innerHeight);
   };
 
-  public drawGrid = (
-    context: CanvasRenderingContext2D,
-    map: HTMLImageElement
-  ) => {
-    const outline = this.imageLoader.getLoadedImages()["/redoutline.png"];
+  public drawGrid = () => {
+    const outline = this.imageLoader.getLoadedImage("/redoutline.png");
+    const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
 
-    const numRows = Math.floor(map.height / 10);
-    const numCols = Math.floor((map.width - 10) / 10);
+    const numRows = Math.floor(mapImage.height / 10);
+    const numCols = Math.floor((mapImage.width - 10) / 10);
 
     for (let r = 0; r < numRows; r++) {
       for (let c = 0; c < numCols; c++) {
-        context.drawImage(outline, 10 * c, 10 * r + (c % 2) * 5);
+        this.context.drawImage(outline, 10 * c, 10 * r + (c % 2) * 5);
       }
     }
   };
 
-  public drawSelector = (
-    context: CanvasRenderingContext2D,
-    mouse: [number, number]
-  ) => {
-    const selectorImage = this.imageLoader.getLoadedImages()["/selector.png"];
+  public drawSelector = () => {
+    const selectorImage = this.imageLoader.getLoadedImage("/selector.png");
+    const snapPos = mousePosToSnapPos(...this.mouse);
 
-    const snapPos = mousePosToSnapPos(mouse[0], mouse[1]);
-
-    context.drawImage(selectorImage, snapPos[0] - 1, snapPos[1] - 1);
+    this.context.drawImage(selectorImage, snapPos[0] - 1, snapPos[1] - 1);
   };
 }

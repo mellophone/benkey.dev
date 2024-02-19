@@ -62,6 +62,9 @@ export default class ImageLoader {
 
   public getLoadedImages = () => this.loadedImageCollection;
 
+  public getLoadedImage = (filename: string) =>
+    this.loadedImageCollection[filename];
+
   private markImageLoaded = () => this.currentlyLoading--;
 
   private createImageElement = (src: string) => {
