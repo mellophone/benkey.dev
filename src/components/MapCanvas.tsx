@@ -7,13 +7,14 @@ const CANVAS_ID = "canvas-area";
 
 export const MapCanvas = (props: { mapObject: MapObject }) => {
   const { mapObject } = props;
-  const [worldManager] = useState<WorldManager>(new WorldManager(mapObject));
+  const [, setWorldManager] = useState<WorldManager | undefined>();
 
   useEffect(() => onStartup(), []);
 
   const onStartup = () => {
     const canvas = getCanvas();
-    worldManager.onStartup(canvas);
+    const newWorldManager = new WorldManager(canvas, mapObject);
+    setWorldManager(newWorldManager);
   };
 
   const getCanvas = (): HTMLCanvasElement => {

@@ -7,28 +7,34 @@ const FRAMES_PER_SECOND = 60;
 const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
-  private imageLoader = new ImageLoader(this.mapObject);
+  public context: CanvasRenderingContext2D;
+  public imageLoader = new ImageLoader(this.mapObject);
   private devMode = false;
 
-  constructor(private readonly mapObject: MapObject) {}
+  constructor(
+    public canvas: HTMLCanvasElement,
+    public readonly mapObject: MapObject
+  ) {
+    const canvasContext = canvas.getContext("2d");
+    if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
+    this.context = canvasContext;
 
-  public onStartup = (canvas: HTMLCanvasElement) => {
-    this.imageLoader.onLoadingComplete = () => this.startWorld(canvas);
+    this.imageLoader.onLoadingComplete = this.startWorld;
     this.imageLoader.startImageLoading(canvas);
-  };
+  }
 
-  public startWorld = (canvas: HTMLCanvasElement) => {
-    WorldManager.startAutomaticResizing(canvas);
+  public startWorld = () => {
+    this.startAutomaticResizing();
 
     const imageCollection = this.imageLoader.getLoadedImages();
     const mapImage = imageCollection[this.mapObject.mapSrc];
     let mouse: [number, number] = [-1, -1];
-    canvas.onmousemove = (ev) => {
+    this.canvas.onmousemove = (ev) => {
       mouse[0] = ev.x;
       mouse[1] = ev.y;
     };
 
-    canvas.onkeydown = (ev) => {
+    this.canvas.onkeydown = (ev) => {
       if (ev.key.toLocaleLowerCase() === "`") {
         this.devMode = !this.devMode;
       }
@@ -43,30 +49,23 @@ export default class WorldManager {
      * Loop for all visual frame updates
      */
     const frameLoop = setInterval(() => {
-      const context = WorldManager.get2DCanvasContext(canvas);
-      context.drawImage(mapImage, 0, 0);
+      this.context.drawImage(mapImage, 0, 0);
 
       if (this.devMode) {
-        this.drawDevModeLayer(context, mapImage, mouse);
+        this.drawDevModeLayer(this.context, mapImage, mouse);
       }
     }, hertzToMs(FRAMES_PER_SECOND));
   };
 
-  static startAutomaticResizing = (canvas: HTMLCanvasElement) => {
+  public startAutomaticResizing = () => {
     const resizeCanvas = () => {
-      console.log(`Canvas size: ${canvas.width} x ${canvas.height}`);
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      console.log(`Canvas size: ${this.canvas.width} x ${this.canvas.height}`);
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
     };
 
     resizeCanvas();
     window.onresize = resizeCanvas;
-  };
-
-  static get2DCanvasContext = (canvas: HTMLCanvasElement) => {
-    const context = canvas.getContext("2d");
-    if (!context) throw Error("Context not found!");
-    return context;
   };
 
   public drawDevModeLayer = (
