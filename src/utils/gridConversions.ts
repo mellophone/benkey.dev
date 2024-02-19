@@ -6,9 +6,9 @@ export const getRow = (x: number, y: number) =>
 export const getCol = (x: number, y: number) =>
   Math.floor(-(y - (1 / 2) * x - 4.5 * PIXEL_MAG) / (PIXEL_MAG * 10));
 
-export const getX = (x: number, y: number) => PIXEL_MAG * 10 * (x + y);
+export const getX = (r: number, c: number) => PIXEL_MAG * 10 * (r + c);
 
-export const getY = (x: number, y: number) => PIXEL_MAG * 5 * (x - y);
+export const getY = (r: number, c: number) => PIXEL_MAG * 5 * (r - c);
 
 export const mousePosToIso = (x: number, y: number): [number, number] => [
   getRow(x, y),

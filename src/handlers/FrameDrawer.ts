@@ -1,16 +1,16 @@
-import { mousePosToSnapPos } from "../utils/gridConversions";
 import WorldManager from "./WorldManager";
+import { mousePosToSnapPos } from "../utils/gridConversions";
 
 export default class FrameDrawer {
   constructor(public worldManager: WorldManager) {}
 
   public drawCurrentFrame = () => {
-    const mapImage = this.worldManager.imageLoader.getLoadedImage(
-      this.worldManager.mapObject.mapSrc
-    );
-    this.worldManager.context.drawImage(mapImage, 0, 0);
+    const { imageLoader, mapObject, context, devMode } = this.worldManager;
 
-    if (this.worldManager.devMode) {
+    const mapImage = imageLoader.getLoadedImage(mapObject.mapSrc);
+    context.drawImage(mapImage, 0, 0);
+
+    if (devMode) {
       this.drawDevModeLayer();
     }
 
@@ -18,42 +18,27 @@ export default class FrameDrawer {
   };
 
   public drawDevModeLayer = () => {
-    this.drawGrid();
+    const { context } = this.worldManager;
 
-    this.worldManager.context.strokeStyle = "red";
-    this.worldManager.context.strokeText("DEV MODE", 0, window.innerHeight);
+    this.drawGrid();
+    context.strokeStyle = "red";
+    context.strokeText("DEV MODE", 0, window.innerHeight);
   };
 
   public drawGrid = () => {
-    const outline =
-      this.worldManager.imageLoader.getLoadedImage("/redoutline.png");
-    const mapImage = this.worldManager.imageLoader.getLoadedImage(
-      this.worldManager.mapObject.mapSrc
-    );
+    const { imageLoader, entityGrid, context } = this.worldManager;
+    const outline = imageLoader.getLoadedImage("/redoutline.png");
 
-    const numRows = Math.floor(mapImage.height / 10);
-    const numCols = Math.floor((mapImage.width - 10) / 10);
-
-    for (let r = 0; r < numRows; r++) {
-      for (let c = 0; c < numCols; c++) {
-        this.worldManager.context.drawImage(
-          outline,
-          10 * c,
-          10 * r + (c % 2) * 5
-        );
-      }
-    }
+    entityGrid.forEach((cell) => {
+      context.drawImage(outline, ...cell.getXY());
+    });
   };
 
   public drawSelector = () => {
-    const selectorImage =
-      this.worldManager.imageLoader.getLoadedImage("/selector.png");
-    const snapPos = mousePosToSnapPos(...this.worldManager.mouse);
+    const { imageLoader, mouse, context } = this.worldManager;
+    const selectorImage = imageLoader.getLoadedImage("/selector.png");
+    const snapPos = mousePosToSnapPos(...mouse);
 
-    this.worldManager.context.drawImage(
-      selectorImage,
-      snapPos[0] - 1,
-      snapPos[1] - 1
-    );
+    context.drawImage(selectorImage, snapPos[0] - 1, snapPos[1] - 1);
   };
 }

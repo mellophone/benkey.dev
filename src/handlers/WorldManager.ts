@@ -1,3 +1,4 @@
+import EntityGrid from "./EntityGrid";
 import FrameDrawer from "./FrameDrawer";
 import ImageLoader from "./ImageLoader";
 import { MapObject } from "@/types/MapObject";
@@ -8,9 +9,10 @@ const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
   public context: CanvasRenderingContext2D;
-  public mouse: [number, number] = [0, 0];
+  public mouse: [number, number] = [-20, -20];
   public imageLoader = new ImageLoader(this.mapObject);
   public frameDrawer = new FrameDrawer(this);
+  public entityGrid = new EntityGrid(this);
 
   public devMode = false;
   private worldLoop?: NodeJS.Timer;
@@ -33,6 +35,7 @@ export default class WorldManager {
   }
 
   public startWorld = () => {
+    this.entityGrid.resetGrid();
     this.startWorldLoop();
     this.startFrameLoop();
   };
