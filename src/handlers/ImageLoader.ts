@@ -6,6 +6,7 @@ export default class ImageLoader {
   private defaultSrcList = [
     "/ben0.png",
     "/selector.png",
+    "/blueselector.png",
     "/shadow.png",
     "/redoutline.png",
   ];

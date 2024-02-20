@@ -1,7 +1,8 @@
 import { arrGridToIso, isoToSnapPos } from "../utils/gridConversions";
+import Entity from "./Entity";
 
 export default class EntityGridCell {
-  public value = null;
+  public value: Entity | null = null;
 
   constructor(public i: number, public j: number) {}
 

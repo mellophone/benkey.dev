@@ -1,4 +1,5 @@
-import EntityGrid from "./EntityGrid";
+import Entity from "../models/Entity";
+import EntityGrid from "../models/EntityGrid";
 import FrameDrawer from "./FrameDrawer";
 import ImageLoader from "./ImageLoader";
 import { MapObject } from "@/types/MapObject";
@@ -38,6 +39,17 @@ export default class WorldManager {
     this.entityGrid.resetGrid();
     this.startWorldLoop();
     this.startFrameLoop();
+
+    this.entityGrid.placeEntity(
+      new Entity(
+        "ben",
+        this.imageLoader.getLoadedImage("/ben0.png"),
+        1,
+        -1,
+        2,
+        -10
+      )
+    );
   };
 
   public startWorldLoop = () => {
@@ -54,10 +66,11 @@ export default class WorldManager {
   };
 
   public startFrameLoop = () => {
-    this.frameLoop = setInterval(
-      this.frameDrawer.drawCurrentFrame,
-      hertzToMs(FRAMES_PER_SECOND)
-    );
+    let fNum = 0;
+    this.frameLoop = setInterval(() => {
+      this.frameDrawer.drawCurrentFrame(fNum);
+      fNum++;
+    }, hertzToMs(FRAMES_PER_SECOND));
   };
 
   public stopFrameLoop = () => {
