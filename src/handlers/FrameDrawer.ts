@@ -1,10 +1,4 @@
 import WorldManager from "./WorldManager";
-import {
-  getX,
-  getY,
-  isoToSnapPos,
-  mousePosToSnapPos,
-} from "../utils/gridConversions";
 
 export default class FrameDrawer {
   constructor(public worldManager: WorldManager) {}
@@ -22,7 +16,7 @@ export default class FrameDrawer {
     this.drawSelector();
 
     if (!ben) return;
-    const [x, y] = isoToSnapPos(ben.r, ben.c);
+    const { x, y } = ben.currentCell.toXYCoord();
 
     const shadowImage = imageLoader.getLoadedImage("/shadow.png");
 
@@ -67,18 +61,13 @@ export default class FrameDrawer {
     const yellowSelector = imageLoader.getLoadedImage("/yellowselector.png");
 
     entityGrid.forEach((cell) => {
-      if (
-        ben?.cellQueue.find(
-          (benCell) =>
-            benCell[0] === cell.getISO()[0] && benCell[1] === cell.getISO()[1]
-        )
-      ) {
-        const [x, y] = cell.getXY();
+      const { x, y } = cell.matrixCell.toXYCoord();
+
+      if (ben?.cellQueue.find(cell.matrixCell.toIsoCell().equals)) {
         context.drawImage(yellowSelector, x - 1, y - 1);
       } else if (!cell.value) {
-        context.drawImage(outline, ...cell.getXY());
+        context.drawImage(outline, x, y);
       } else {
-        const [x, y] = cell.getXY();
         context.drawImage(blueSelector, x - 1, y - 1);
       }
     });
@@ -87,17 +76,18 @@ export default class FrameDrawer {
   public drawSelector = () => {
     const { imageLoader, mouse, context, ben } = this.worldManager;
     const selectorImage = imageLoader.getLoadedImage("/selector.png");
-    const snapPos = mousePosToSnapPos(...mouse);
+    const mouseIso = mouse.toIsoCell();
+    const snapMouse = mouseIso.toXYCoord();
 
-    context.drawImage(selectorImage, snapPos[0] - 1, snapPos[1] - 1);
+    context.drawImage(selectorImage, snapMouse.x - 1, snapMouse.y - 1);
 
     const destination =
-      ben?.cellQueue.at(-1) || (ben?.leavingCell && [ben.r, ben.c]);
+      ben?.cellQueue.at(-1) || (ben?.leavingCell && ben.currentCell);
     if (!destination) return;
 
-    const [x, y] = [getX(...destination), getY(...destination)];
-    if (x === snapPos[0] && y === snapPos[1]) return;
+    if (mouseIso.equals(destination)) return;
 
+    const { x, y } = destination.toXYCoord();
     context.drawImage(selectorImage, x - 1, y - 1);
   };
 }

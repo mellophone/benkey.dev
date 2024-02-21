@@ -1,6 +1,6 @@
 import Entity from "../models/Entity";
 import EntityGrid from "../models/EntityGrid";
-import { mousePosToIso } from "../utils/gridConversions";
+import { IsoCell, XYCoord } from "../types/Cell";
 import FrameDrawer from "./FrameDrawer";
 import ImageLoader from "./ImageLoader";
 import { MapObject } from "@/types/MapObject";
@@ -11,7 +11,7 @@ const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
   public context: CanvasRenderingContext2D;
-  public mouse: [number, number] = [-20, -20];
+  public mouse: XYCoord = new XYCoord(-20, -20);
   public imageLoader = new ImageLoader(this.mapObject);
   public frameDrawer = new FrameDrawer(this);
   public entityGrid = new EntityGrid(this);
@@ -47,8 +47,7 @@ export default class WorldManager {
       this,
       "ben",
       this.imageLoader.getLoadedImage("/ben0.png"),
-      1,
-      -1,
+      new IsoCell(1, -1),
       2,
       -10
     );
@@ -87,19 +86,20 @@ export default class WorldManager {
     const zoom = this.canvas.style.getPropertyValue("zoom");
     if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
 
-    this.mouse[0] = ev.x / parseInt(zoom);
-    this.mouse[1] = ev.y / parseInt(zoom);
+    const x = ev.x / parseInt(zoom);
+    const y = ev.y / parseInt(zoom);
+    this.mouse = new XYCoord(x, y);
   };
 
   public mouseDownListener = (ev: MouseEvent) => {
     const zoom = this.canvas.style.getPropertyValue("zoom");
     if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
 
-    const destination = mousePosToIso(
-      ev.x / parseInt(zoom),
-      ev.y / parseInt(zoom)
-    );
-    this.ben?.setDestination(...destination);
+    const x = ev.x / parseInt(zoom);
+    const y = ev.y / parseInt(zoom);
+    const destination = new XYCoord(x, y).toIsoCell();
+
+    this.ben?.setDestination(destination);
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {

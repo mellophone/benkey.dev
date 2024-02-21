@@ -1,9 +1,9 @@
 import WorldManager from "../handlers/WorldManager";
-import { getX, getY } from "../utils/gridConversions";
+import { Direction, IsoCell } from "../types/Cell";
 
 export default class Entity {
-  public cellQueue: [number, number][] = [];
-  public leavingCell?: [number, number];
+  public cellQueue: IsoCell[] = [];
+  public leavingCell?: IsoCell;
   public frameNum = 0;
   public walkStart = -1;
   public direction = Direction.SE;
@@ -14,8 +14,7 @@ export default class Entity {
     public worldManager: WorldManager,
     public name: string,
     public texture: HTMLImageElement,
-    public r: number,
-    public c: number,
+    public currentCell: IsoCell,
     public xiOffset = 0,
     public yiOffset = 0,
     public w = 16,
@@ -37,7 +36,7 @@ export default class Entity {
     }
 
     const dt = tNum - this.walkStart;
-    const framePeriod = 3;
+    const framePeriod = 2;
     const nextFrameReady = dt % framePeriod === 0;
     const sequenceIndex = Math.floor(dt / framePeriod);
 
@@ -52,13 +51,13 @@ export default class Entity {
   };
 
   public startWalk = (tNum: number) => {
-    const pop = this.cellQueue.shift();
-    if (!pop) return;
+    const nextCell = this.cellQueue.shift();
+    if (!nextCell) return;
 
-    this.direction = this.getDirectionTo(...pop);
+    this.direction = this.currentCell.getDirectionTo(nextCell);
 
-    this.leavingCell = [this.r, this.c];
-    [this.r, this.c] = pop;
+    this.leavingCell = this.currentCell;
+    this.currentCell = nextCell;
     this.worldManager.entityGrid.placeEntity(this);
     this.walkStart = tNum;
 
@@ -88,23 +87,9 @@ export default class Entity {
     }
   };
 
-  public getDirectionTo = (r: number, c: number) => {
-    if (this.r < r) {
-      return Direction.SE;
-    } else if (this.r > r) {
-      return Direction.NW;
-    } else if (this.c < c) {
-      return Direction.NE;
-    } else if (this.c > c) {
-      return Direction.SW;
-    } else {
-      return this.direction;
-    }
-  };
-
   public stopWalk = () => {
     if (this.leavingCell) {
-      this.worldManager.entityGrid.removeEntity(...this.leavingCell);
+      this.worldManager.entityGrid.removeEntity(this.leavingCell);
     }
     if (this.cellQueue.length === 0) {
       this.frameNum = 0;
@@ -128,19 +113,18 @@ export default class Entity {
       ((this.frameNum + (goingS ? 0 : 1)) % 2) * (goingS ? 1 : -1);
   };
 
-  public setDestination = (r: number, c: number) => {
-    const path: [number, number][] = [[this.r, this.c]];
+  public setDestination = (destination: IsoCell) => {
+    const path: IsoCell[] = [this.currentCell];
 
     let temp = 0;
-    while (path[path.length - 1][0] !== r || path[path.length - 1][1] !== c) {
+    while (!path[path.length - 1].equals(destination)) {
       const cur = path.pop();
       if (!cur) throw Error("Entity pathfinding loop path is empty!");
 
-      const nearby = this.getFacingCells(...cur, r, c);
+      const nearby = cur.getNearbyCellsFacing(destination);
       const distances = nearby.map(
         (cell) =>
-          this.getDistanceBetween(r, c, ...cell) +
-          this.getDistanceBetween(this.r, this.c, ...cell)
+          cell.getDistanceTo(destination) + cell.getDistanceTo(this.currentCell)
       );
 
       const minDistance = Math.min(...distances);
@@ -159,56 +143,19 @@ export default class Entity {
     this.cellQueue = path;
   };
 
-  private getFacingCells = (
-    r1: number,
-    c1: number,
-    r2: number,
-    c2: number
-  ): [number, number][] => {
-    const cells: [number, number][] = [];
+  public getDrawValues = () => {
+    const { x, y } = this.currentCell.toXYCoord();
 
-    if (r2 > r1) {
-      cells.push([r1 + 1, c1]);
-    }
-    if (r2 < r1) {
-      cells.push([r1 - 1, c1]);
-    }
-    if (c2 > c1) {
-      cells.push([r1, c1 + 1]);
-    }
-    if (c2 < c1) {
-      cells.push([r1, c1 - 1]);
-    }
-
-    return cells;
-  };
-
-  private getDistanceBetween = (
-    r1: number,
-    c1: number,
-    r2: number,
-    c2: number
-  ) => {
-    return Math.sqrt(Math.pow(r1 - r2, 2) + Math.pow(c1 - c2, 2));
-  };
-
-  public getDrawValues = () =>
-    [
+    return [
       this.texture,
       this.frameNum * 16,
       this.direction * 16,
       this.w,
       this.h,
-      getX(this.r, this.c) + this.xOffset,
-      getY(this.r, this.c) + this.yOffset,
+      x + this.xOffset,
+      y + this.yOffset,
       this.w,
       this.h,
     ] as const;
-}
-
-enum Direction {
-  SE,
-  SW,
-  NW,
-  NE,
+  };
 }
