@@ -5,8 +5,7 @@ export default class FrameDrawer {
   constructor(public worldManager: WorldManager) {}
 
   public drawCurrentFrame = (fNum: number) => {
-    const { imageLoader, mapObject, context, devMode, entityGrid } =
-      this.worldManager;
+    const { imageLoader, mapObject, context, devMode, ben } = this.worldManager;
 
     const mapImage = imageLoader.getLoadedImage(mapObject.mapSrc);
     context.drawImage(mapImage, 0, 0);
@@ -17,28 +16,24 @@ export default class FrameDrawer {
 
     this.drawSelector();
 
-    entityGrid.forEach((cell) => {
-      const entity = cell.value;
-      if (!entity) return;
+    if (!ben) return;
+    const [x, y] = isoToSnapPos(ben.r, ben.c);
 
-      const [x, y] = cell.getXY();
+    const shadowImage = imageLoader.getLoadedImage("/shadow.png");
 
-      const shadowImage = imageLoader.getLoadedImage("/shadow.png");
+    context.drawImage(
+      shadowImage,
+      0,
+      0,
+      shadowImage.width,
+      shadowImage.height,
+      x + ben.xOffset,
+      y + ben.yOffset,
+      shadowImage.width,
+      shadowImage.height
+    );
 
-      context.drawImage(
-        shadowImage,
-        0,
-        0,
-        shadowImage.width,
-        shadowImage.height,
-        x + entity.xOffset,
-        y + entity.yOffset,
-        shadowImage.width,
-        shadowImage.height
-      );
-
-      context.drawImage(...entity.getDrawValues());
-    });
+    context.drawImage(...ben.getDrawValues());
   };
 
   public drawDevModeLayer = () => {
@@ -50,16 +45,25 @@ export default class FrameDrawer {
   };
 
   public drawGrid = () => {
-    const { imageLoader, entityGrid, context } = this.worldManager;
+    const { imageLoader, entityGrid, context, ben } = this.worldManager;
     const outline = imageLoader.getLoadedImage("/redoutline.png");
-    const selector = imageLoader.getLoadedImage("/blueselector.png");
+    const blueSelector = imageLoader.getLoadedImage("/blueselector.png");
+    const yellowSelector = imageLoader.getLoadedImage("/yellowselector.png");
 
     entityGrid.forEach((cell) => {
-      if (!cell.value) {
+      if (
+        ben?.cellQueue.find(
+          (benCell) =>
+            benCell[0] === cell.getISO()[0] && benCell[1] === cell.getISO()[1]
+        )
+      ) {
+        const [x, y] = cell.getXY();
+        context.drawImage(yellowSelector, x - 1, y - 1);
+      } else if (!cell.value) {
         context.drawImage(outline, ...cell.getXY());
       } else {
         const [x, y] = cell.getXY();
-        context.drawImage(selector, x - 1, y - 1);
+        context.drawImage(blueSelector, x - 1, y - 1);
       }
     });
   };

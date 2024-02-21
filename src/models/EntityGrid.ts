@@ -26,10 +26,30 @@ export default class EntityGrid {
     }
   };
 
+  private getCell = (i: number, j: number) => {
+    if (i < 0 || i >= this.grid.length) {
+      return undefined;
+    }
+    if (j < 0 || j >= this.grid[i].length) {
+      return undefined;
+    }
+
+    return this.grid[i][j];
+  };
+
+  private setCellValue = (i: number, j: number, value: Entity | null) => {
+    const cell = this.getCell(i, j);
+    if (!cell) return;
+    cell.value = value;
+  };
+
   public placeEntity = (entity: Entity) => {
     const [i, j] = isoToArrGrid(entity.r, entity.c);
+    this.setCellValue(i, j, entity);
+  };
 
-    this.grid[i][j].value = entity;
+  public removeEntity = (r: number, c: number) => {
+    this.setCellValue(...isoToArrGrid(r, c), null);
   };
 
   public forEach = (callback: (cell: EntityGridCell) => void) => {

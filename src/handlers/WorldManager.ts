@@ -1,5 +1,6 @@
 import Entity from "../models/Entity";
 import EntityGrid from "../models/EntityGrid";
+import { mousePosToIso } from "../utils/gridConversions";
 import FrameDrawer from "./FrameDrawer";
 import ImageLoader from "./ImageLoader";
 import { MapObject } from "@/types/MapObject";
@@ -14,6 +15,7 @@ export default class WorldManager {
   public imageLoader = new ImageLoader(this.mapObject);
   public frameDrawer = new FrameDrawer(this);
   public entityGrid = new EntityGrid(this);
+  public ben: Entity | undefined;
 
   public devMode = false;
   private worldLoop?: NodeJS.Timer;
@@ -30,6 +32,7 @@ export default class WorldManager {
     this.startAutomaticResizing();
     this.canvas.onmousemove = this.mouseMoveListener;
     this.canvas.onkeydown = this.keyDownListener;
+    this.canvas.onmousedown = this.mouseDownListener;
 
     this.imageLoader.onLoadingComplete = this.startWorld;
     this.imageLoader.startImageLoading(canvas);
@@ -40,26 +43,29 @@ export default class WorldManager {
     this.startWorldLoop();
     this.startFrameLoop();
 
-    this.entityGrid.placeEntity(
-      new Entity(
-        "ben",
-        this.imageLoader.getLoadedImage("/ben0.png"),
-        1,
-        -1,
-        2,
-        -10
-      )
+    this.ben = new Entity(
+      this,
+      "ben",
+      this.imageLoader.getLoadedImage("/ben0.png"),
+      1,
+      -1,
+      2,
+      -10
     );
+    this.entityGrid.placeEntity(this.ben);
   };
 
   public startWorldLoop = () => {
-    this.worldLoop = setInterval(
-      this.manageUpdates,
-      hertzToMs(UPDATES_PER_SECOND)
-    );
+    let tNum = 0;
+    this.worldLoop = setInterval(() => {
+      this.manageUpdates(tNum);
+      tNum++;
+    }, hertzToMs(UPDATES_PER_SECOND));
   };
 
-  public manageUpdates = () => {};
+  public manageUpdates = (tNum: number) => {
+    this.ben?.think(tNum);
+  };
 
   public stopWorldLoop = () => {
     clearInterval(this.worldLoop);
@@ -83,6 +89,17 @@ export default class WorldManager {
 
     this.mouse[0] = ev.x / parseInt(zoom);
     this.mouse[1] = ev.y / parseInt(zoom);
+  };
+
+  public mouseDownListener = (ev: MouseEvent) => {
+    const zoom = this.canvas.style.getPropertyValue("zoom");
+    if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
+
+    const destination = mousePosToIso(
+      ev.x / parseInt(zoom),
+      ev.y / parseInt(zoom)
+    );
+    this.ben?.setDestination(...destination);
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {

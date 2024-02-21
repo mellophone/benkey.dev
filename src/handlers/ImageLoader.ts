@@ -7,6 +7,7 @@ export default class ImageLoader {
     "/ben0.png",
     "/selector.png",
     "/blueselector.png",
+    "/yellowselector.png",
     "/shadow.png",
     "/redoutline.png",
   ];
