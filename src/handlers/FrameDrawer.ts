@@ -1,5 +1,10 @@
 import WorldManager from "./WorldManager";
-import { isoToSnapPos, mousePosToSnapPos } from "../utils/gridConversions";
+import {
+  getX,
+  getY,
+  isoToSnapPos,
+  mousePosToSnapPos,
+} from "../utils/gridConversions";
 
 export default class FrameDrawer {
   constructor(public worldManager: WorldManager) {}
@@ -37,11 +42,22 @@ export default class FrameDrawer {
   };
 
   public drawDevModeLayer = () => {
-    const { context } = this.worldManager;
+    const { context, canvas } = this.worldManager;
 
     this.drawGrid();
-    context.strokeStyle = "red";
-    context.strokeText("DEV MODE", 0, window.innerHeight);
+
+    const zoom = canvas.style.getPropertyValue("zoom");
+    if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
+
+    context.fillStyle = "red";
+    context.font = "bold 20px courier";
+    const text = "DEV MODE";
+    const textWidth = context.measureText(text).width;
+    context.fillText(
+      text,
+      window.innerWidth / parseInt(zoom) / 2 - textWidth / 2,
+      window.innerHeight / parseInt(zoom)
+    );
   };
 
   public drawGrid = () => {
@@ -69,10 +85,19 @@ export default class FrameDrawer {
   };
 
   public drawSelector = () => {
-    const { imageLoader, mouse, context } = this.worldManager;
+    const { imageLoader, mouse, context, ben } = this.worldManager;
     const selectorImage = imageLoader.getLoadedImage("/selector.png");
     const snapPos = mousePosToSnapPos(...mouse);
 
     context.drawImage(selectorImage, snapPos[0] - 1, snapPos[1] - 1);
+
+    const destination =
+      ben?.cellQueue.at(-1) || (ben?.leavingCell && [ben.r, ben.c]);
+    if (!destination) return;
+
+    const [x, y] = [getX(...destination), getY(...destination)];
+    if (x === snapPos[0] && y === snapPos[1]) return;
+
+    context.drawImage(selectorImage, x - 1, y - 1);
   };
 }
