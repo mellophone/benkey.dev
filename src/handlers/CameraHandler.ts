@@ -155,14 +155,14 @@ export default class CameraHandler {
   };
 
   public startAutomaticResizing = () => {
+    this.resizeCanvas();
+    window.onresize = this.resizeCanvas;
+  };
+
+  private resizeCanvas = () => {
     const { canvas } = this.worldManager;
 
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    resizeCanvas();
-    window.onresize = resizeCanvas;
+    canvas.width = window.outerWidth;
+    canvas.height = window.outerHeight;
   };
 }
