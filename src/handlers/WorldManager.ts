@@ -1,8 +1,9 @@
 import Entity from "../models/Entity";
 import EntityGrid from "../models/EntityGrid";
-import { IsoCell, XYCoord } from "../types/Cell";
+import CameraHandler from "./CameraHandler";
 import FrameDrawer from "./FrameDrawer";
 import ImageLoader from "./ImageLoader";
+import { IsoCell } from "../types/Cell";
 import { MapObject } from "@/types/MapObject";
 
 const UPDATES_PER_SECOND = 40;
@@ -10,11 +11,10 @@ const FRAMES_PER_SECOND = 60;
 const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
-  public context: CanvasRenderingContext2D;
-  public mouse: XYCoord = new XYCoord(-20, -20);
   public imageLoader = new ImageLoader(this.mapObject);
   public frameDrawer = new FrameDrawer(this);
   public entityGrid = new EntityGrid(this);
+  public cameraHandler = new CameraHandler(this);
   public ben: Entity | undefined;
 
   public devMode = false;
@@ -25,15 +25,6 @@ export default class WorldManager {
     public canvas: HTMLCanvasElement,
     public readonly mapObject: MapObject
   ) {
-    const canvasContext = canvas.getContext("2d");
-    if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
-    this.context = canvasContext;
-
-    this.startAutomaticResizing();
-    this.canvas.onmousemove = this.mouseMoveListener;
-    this.canvas.onkeydown = this.keyDownListener;
-    this.canvas.onmousedown = this.mouseDownListener;
-
     this.imageLoader.onLoadingComplete = this.startWorld;
     this.imageLoader.startImageLoading(canvas);
   }
@@ -80,48 +71,5 @@ export default class WorldManager {
 
   public stopFrameLoop = () => {
     clearInterval(this.frameLoop);
-  };
-
-  public mouseMoveListener = (ev: MouseEvent) => {
-    const zoom = this.canvas.style.getPropertyValue("zoom");
-    if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
-
-    const x = ev.x / parseInt(zoom);
-    const y = ev.y / parseInt(zoom);
-    this.mouse = new XYCoord(x, y);
-  };
-
-  public mouseDownListener = (ev: MouseEvent) => {
-    const zoom = this.canvas.style.getPropertyValue("zoom");
-    if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
-
-    const x = ev.x / parseInt(zoom);
-    const y = ev.y / parseInt(zoom);
-    const destination = new XYCoord(x, y).toIsoCell();
-
-    this.ben?.setDestination(destination);
-  };
-
-  public keyDownListener = (ev: KeyboardEvent) => {
-    if (ev.key.toLocaleLowerCase() === "`") {
-      this.devMode = !this.devMode;
-    }
-  };
-
-  public startAutomaticResizing = () => {
-    const resizeCanvas = () => {
-      console.log(`Canvas size: ${this.canvas.width} x ${this.canvas.height}`);
-      this.canvas.width = window.innerWidth;
-      this.canvas.height = window.innerHeight;
-    };
-
-    resizeCanvas();
-    window.onresize = resizeCanvas;
-  };
-
-  public preventMobileGesture = () => {
-    document.addEventListener("gesturestart", (e) => {
-      e.preventDefault();
-    });
   };
 }
