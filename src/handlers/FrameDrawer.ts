@@ -39,12 +39,13 @@ export default class FrameDrawer {
   };
 
   public drawDevModeLayer = () => {
-    const { cameraHandler, canvas } = this.worldManager;
+    const { cameraHandler } = this.worldManager;
 
     this.drawGrid();
 
-    const zoom = canvas.style.getPropertyValue("zoom");
-    if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
+    cameraHandler.drawWalkableArea();
+
+    const zoom = cameraHandler.getZoom();
 
     const { x, y } = cameraHandler.cameraOffset;
     const text = `DEV MODE (${x}, ${y})`;
@@ -52,7 +53,7 @@ export default class FrameDrawer {
     cameraHandler.fillText(
       text,
       0,
-      window.innerHeight / parseInt(zoom),
+      cameraHandler.getAdjustedWindowDimensions().h,
       "red",
       "bold 20px courier"
     );

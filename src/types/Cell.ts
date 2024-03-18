@@ -1,4 +1,4 @@
-import { PIXEL_MAG } from "@/pages/mapmaker";
+import { CELL_HEIGHT, CELL_WIDTH, PIXEL_MAG } from "@/pages/mapmaker";
 
 export class IsoCell {
   constructor(public r: number, public c: number) {}
@@ -17,6 +17,15 @@ export class IsoCell {
     const y = PIXEL_MAG * 5 * (r - c);
 
     return new XYCoord(x, y);
+  };
+
+  public toCenterXYCoord = (): XYCoord => {
+    const xyCoord = this.toXYCoord();
+
+    xyCoord.x += CELL_WIDTH / 2;
+    xyCoord.y += CELL_HEIGHT / 2;
+
+    return xyCoord;
   };
 
   public getDirectionTo = (toCell: IsoCell) => {

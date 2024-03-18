@@ -43,6 +43,7 @@ export default class WorldManager {
       -10
     );
     this.entityGrid.placeEntity(this.ben);
+    this.cameraHandler.resizeCanvas();
   };
 
   public startWorldLoop = () => {
