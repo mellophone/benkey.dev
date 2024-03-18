@@ -30,6 +30,7 @@ export const MapCanvas = (props: { mapObject: MapObject }) => {
       <Head>
         <title>KeyBit</title>
         <link rel="icon" type="image/x-icon" href="/benicon.png" />
+        <link rel="apple-touch-icon" href="/benicon.png" />
         <meta
           name="viewport"
           content="width=device-width, height=device-height, initial-scale=1.0, viewport-fit=cover"
