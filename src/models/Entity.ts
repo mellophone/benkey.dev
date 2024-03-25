@@ -9,6 +9,7 @@ export default class Entity {
   public direction = Direction.SE;
   public xOffset: number;
   public yOffset: number;
+  public collision = true;
 
   constructor(
     public worldManager: WorldManager,
@@ -24,7 +25,17 @@ export default class Entity {
     this.yOffset = yiOffset;
   }
 
+  private addDestinationFromButtons = () => {
+    if (this.leavingCell || this.cellQueue.length > 0) return;
+    const { playerMover } = this.worldManager.cameraHandler;
+
+    const nextCell = playerMover.getNextCell(this.currentCell);
+    if (nextCell) this.setDestination(nextCell);
+  };
+
   public think = (tNum: number) => {
+    this.addDestinationFromButtons();
+
     const needsToMove = this.cellQueue.length > 0 || this.leavingCell;
 
     if (needsToMove) {
@@ -92,11 +103,12 @@ export default class Entity {
   public stopWalk = () => {
     if (this.leavingCell) {
       this.worldManager.entityGrid.removeEntity(this.leavingCell);
+      this.leavingCell = undefined;
     }
+    this.addDestinationFromButtons();
     if (this.cellQueue.length === 0) {
       this.frameNum = 0;
     }
-    this.leavingCell = undefined;
     this.walkStart = -1;
     this.xOffset = this.xiOffset;
     this.yOffset = this.yiOffset;
@@ -130,6 +142,9 @@ export default class Entity {
   };
 
   public setDestination = (destination: IsoCell) => {
+    if (destination.c >= destination.r - 1) return;
+    if (destination.c <= -destination.r - 1) return;
+
     const path: IsoCell[] = [this.currentCell];
 
     let temp = 0;

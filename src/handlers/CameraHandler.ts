@@ -1,14 +1,16 @@
 import WorldManager from "./WorldManager";
 import { XYCoord } from "../types/Cell";
+import { Mover } from "../types/Mover";
 
 export default class CameraHandler {
   public cameraOffset = new XYCoord(0, 0);
-  public cameraVelocity = {
-    w: false,
-    a: false,
-    s: false,
-    d: false,
+  public cameraMovementKeys = {
+    i: false,
+    j: false,
+    k: false,
+    l: false,
   };
+  public playerMover = new Mover("w", "a", "s", "d");
   public mouse = new XYCoord(-20, -20);
   private context: CanvasRenderingContext2D;
 
@@ -20,9 +22,9 @@ export default class CameraHandler {
   }
 
   public updateCamera = () => {
-    const { w, a, s, d } = this.cameraVelocity;
-    this.cameraOffset.x += (d ? 1 : 0) + (a ? -1 : 0);
-    this.cameraOffset.y += (s ? 1 : 0) + (w ? -1 : 0);
+    const { i, j, k, l } = this.cameraMovementKeys;
+    this.cameraOffset.x += (l ? 1 : 0) + (j ? -1 : 0);
+    this.cameraOffset.y += (k ? 1 : 0) + (i ? -1 : 0);
     this.setSafeCameraOffset();
   };
 
@@ -158,50 +160,42 @@ export default class CameraHandler {
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {
-    const { worldManager, cameraVelocity } = this;
+    const { worldManager, cameraMovementKeys, playerMover } = this;
     const key = ev.key.toLocaleLowerCase();
+
+    playerMover.updateMoverState(key, true);
 
     switch (key) {
       case "`":
         worldManager.devMode = !worldManager.devMode;
-        return;
-      case "w":
         break;
-      case "a":
+      case "i":
+      case "j":
+      case "k":
+      case "l":
+        cameraMovementKeys[key] = true;
         break;
-      case "s":
-        break;
-      case "d":
-        break;
-
       default:
-        return;
-    }
-
-    if (worldManager.devMode) {
-      cameraVelocity[key] = true;
+        break;
     }
   };
 
   public keyUpListener = (ev: KeyboardEvent) => {
-    const { cameraVelocity } = this;
+    const { cameraMovementKeys, playerMover } = this;
     const key = ev.key.toLocaleLowerCase();
 
-    switch (key) {
-      case "w":
-        break;
-      case "a":
-        break;
-      case "s":
-        break;
-      case "d":
-        break;
+    playerMover.updateMoverState(key, false);
 
+    switch (key) {
+      case "i":
+      case "j":
+      case "k":
+      case "l":
+        cameraMovementKeys[key] = false;
+        break;
       default:
         return;
     }
-
-    cameraVelocity[key] = false;
   };
 
   public startAutomaticResizing = () => {
