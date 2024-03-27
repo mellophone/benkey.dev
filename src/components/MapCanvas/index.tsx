@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import WorldManager from "@/handlers/WorldManager";
+import WorldManager from "@/components/MapCanvas/WorldManager";
 import Head from "next/head";
 import { MapObject } from "@/types/MapObject";
 import { useEffect, useState } from "react";

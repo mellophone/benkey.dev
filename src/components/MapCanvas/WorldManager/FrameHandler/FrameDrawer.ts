@@ -1,4 +1,4 @@
-import WorldManager from "./WorldManager";
+import WorldManager from "..";
 
 export default class FrameDrawer {
   constructor(public worldManager: WorldManager) {}

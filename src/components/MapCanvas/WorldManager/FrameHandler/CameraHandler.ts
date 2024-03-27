@@ -1,6 +1,6 @@
-import WorldManager from "./WorldManager";
-import { XYCoord } from "../types/Cell";
-import { Mover } from "../types/Mover";
+import WorldManager from "..";
+import { XYCoord } from "../../../../types/Cell";
+import { Mover } from "../../../../types/Mover";
 
 export default class CameraHandler {
   public cameraOffset = new XYCoord(0, 0);

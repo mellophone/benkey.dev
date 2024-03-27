@@ -1,7 +1,7 @@
 import EntityGridCell from "./EntityGridCell";
-import WorldManager from "../handlers/WorldManager";
-import Entity from "./Entity";
-import { IsoCell, MatrixCell } from "../types/Cell";
+import WorldManager from "..";
+import Entity from "../Entity";
+import { IsoCell, MatrixCell } from "../../../../types/Cell";
 
 export default class EntityGrid {
   public grid: EntityGridCell[][] = [];

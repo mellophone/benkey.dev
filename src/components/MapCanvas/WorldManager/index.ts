@@ -1,9 +1,9 @@
-import Entity from "../models/Entity";
-import EntityGrid from "../models/EntityGrid";
-import CameraHandler from "./CameraHandler";
-import FrameDrawer from "./FrameDrawer";
-import ImageLoader from "./ImageLoader";
-import { IsoCell } from "../types/Cell";
+import Entity from "./Entity";
+import EntityGrid from "./EntityGrid";
+import CameraHandler from "./FrameHandler/CameraHandler";
+import FrameDrawer from "./FrameHandler/FrameDrawer";
+import ImageLoader from "./FrameHandler/ImageLoader";
+import { IsoCell } from "../../../types/Cell";
 import { MapObject } from "@/types/MapObject";
 
 const UPDATES_PER_SECOND = 40;

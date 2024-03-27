@@ -1,5 +1,5 @@
-import WorldManager from "../handlers/WorldManager";
-import { Direction, IsoCell } from "../types/Cell";
+import WorldManager from "..";
+import { Direction, IsoCell } from "../../../../types/Cell";
 
 export default class Entity {
   public cellQueue: IsoCell[] = [];

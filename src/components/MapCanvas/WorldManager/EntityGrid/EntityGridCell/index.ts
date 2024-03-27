@@ -1,5 +1,5 @@
-import { MatrixCell } from "../types/Cell";
-import Entity from "./Entity";
+import { MatrixCell } from "../../../../../types/Cell";
+import Entity from "../../Entity";
 
 export default class EntityGridCell {
   public value: Entity | null = null;
