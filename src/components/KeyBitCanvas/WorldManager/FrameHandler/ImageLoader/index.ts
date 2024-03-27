@@ -1,5 +1,5 @@
+import MapObject from "@/types/MapObject";
 import { ImageCollection } from "@/types/ImageData";
-import { MapObject } from "@/types/MapObject";
 
 export default class ImageLoader {
   private currentlyLoading: number;

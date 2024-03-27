@@ -1,20 +1,18 @@
 import Entity from "./Entity";
 import EntityGrid from "./EntityGrid";
-import CameraHandler from "./FrameHandler/CameraHandler";
-import FrameDrawer from "./FrameHandler/FrameDrawer";
 import ImageLoader from "./FrameHandler/ImageLoader";
+import MapObject from "@/types/MapObject";
 import { IsoCell } from "../../../types/Cell";
-import { MapObject } from "@/types/MapObject";
+import FrameHandler from "./FrameHandler";
 
 const UPDATES_PER_SECOND = 40;
 const FRAMES_PER_SECOND = 60;
 const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
+  public frameHandler = new FrameHandler(this);
   public imageLoader = new ImageLoader(this.mapObject);
-  public frameDrawer = new FrameDrawer(this);
   public entityGrid = new EntityGrid(this);
-  public cameraHandler = new CameraHandler(this);
   public ben: Entity | undefined;
 
   public devMode = false;
@@ -30,6 +28,7 @@ export default class WorldManager {
   }
 
   public startWorld = () => {
+    this.frameHandler.temporaryStart();
     this.entityGrid.resetGrid();
     this.startWorldLoop();
     this.startFrameLoop();
@@ -43,7 +42,7 @@ export default class WorldManager {
       -10
     );
     this.entityGrid.placeEntity(this.ben);
-    this.cameraHandler.resizeCanvas();
+    this.frameHandler.resizeCanvas();
   };
 
   public startWorldLoop = () => {
@@ -65,7 +64,7 @@ export default class WorldManager {
   public startFrameLoop = () => {
     let fNum = 0;
     this.frameLoop = setInterval(() => {
-      this.frameDrawer.drawCurrentFrame(fNum);
+      this.frameHandler.drawCurrentFrame(fNum);
       fNum++;
     }, hertzToMs(FRAMES_PER_SECOND));
   };

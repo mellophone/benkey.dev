@@ -2,7 +2,7 @@ import WorldManager from "..";
 import { XYCoord } from "../../../../types/Cell";
 import { Mover } from "../../../../types/Mover";
 
-export default class CameraHandler {
+export default class FrameHandler {
   public cameraOffset = new XYCoord(0, 0);
   public cameraMovementKeys = {
     i: false,
@@ -18,8 +18,114 @@ export default class CameraHandler {
     const canvasContext = worldManager.canvas.getContext("2d");
     if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
     this.context = canvasContext;
-    this.startListeners();
   }
+
+  public temporaryStart = () => {
+    this.startListeners();
+  };
+
+  public drawCurrentFrame = (fNum: number) => {
+    const { imageLoader, mapObject, frameHandler, devMode, ben } =
+      this.worldManager;
+
+    frameHandler.updateCamera();
+
+    const mapImage = imageLoader.getLoadedImage(mapObject.mapSrc);
+    frameHandler.drawSimpleImage(mapImage, 0, 0);
+
+    if (devMode) {
+      this.drawDevModeLayer();
+    }
+
+    this.drawSelector();
+
+    if (!ben) return;
+    const { x, y } = ben.currentCell.toXYCoord();
+
+    const shadowImage = imageLoader.getLoadedImage("/shadow.png");
+
+    frameHandler.drawComplexImage(
+      shadowImage,
+      0,
+      0,
+      shadowImage.width,
+      shadowImage.height,
+      x + ben.xOffset,
+      y + ben.yOffset,
+      shadowImage.width,
+      shadowImage.height
+    );
+
+    frameHandler.drawComplexImage(...ben.getDrawValues());
+  };
+
+  public drawDevModeLayer = () => {
+    const { frameHandler } = this.worldManager;
+
+    this.drawGrid();
+
+    frameHandler.drawWalkableArea();
+
+    const zoom = frameHandler.getZoom();
+
+    const { x, y } = frameHandler.cameraOffset;
+    const text = `DEV MODE (${x}, ${y})`;
+
+    frameHandler.fillText(
+      text,
+      0,
+      frameHandler.getAdjustedWindowDimensions().h,
+      "red",
+      "bold 20px courier"
+    );
+  };
+
+  public drawGrid = () => {
+    const { imageLoader, entityGrid, frameHandler, ben } = this.worldManager;
+    const outline = imageLoader.getLoadedImage("/redoutline.png");
+    const blueSelector = imageLoader.getLoadedImage("/blueselector.png");
+    const yellowSelector = imageLoader.getLoadedImage("/yellowselector.png");
+
+    entityGrid.forEach((cell) => {
+      const { x, y } = cell.matrixCell.toXYCoord();
+
+      if (ben?.cellQueue.find(cell.matrixCell.toIsoCell().equals)) {
+        frameHandler.drawSimpleImage(yellowSelector, x - 1, y - 1);
+      } else if (!cell.value) {
+        frameHandler.drawSimpleImage(outline, x, y);
+      } else {
+        frameHandler.drawSimpleImage(blueSelector, x - 1, y - 1);
+      }
+    });
+  };
+
+  public drawSelector = () => {
+    const {
+      imageLoader,
+      frameHandler,
+      frameHandler: { mouse },
+      ben,
+    } = this.worldManager;
+
+    const selectorImage = imageLoader.getLoadedImage("/selector.png");
+    const mouseIso = mouse.toIsoCell();
+    const snapMouse = mouseIso.toXYCoord();
+
+    frameHandler.drawSimpleImage(
+      selectorImage,
+      snapMouse.x - 1,
+      snapMouse.y - 1
+    );
+
+    const destination =
+      ben?.cellQueue.at(-1) || (ben?.leavingCell && ben.currentCell);
+    if (!destination) return;
+
+    if (mouseIso.equals(destination)) return;
+
+    const { x, y } = destination.toXYCoord();
+    frameHandler.drawSimpleImage(selectorImage, x - 1, y - 1);
+  };
 
   public updateCamera = () => {
     const { i, j, k, l } = this.cameraMovementKeys;

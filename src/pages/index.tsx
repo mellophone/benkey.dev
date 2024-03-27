@@ -1,8 +1,8 @@
+import KeyBitCanvas from "@/components/KeyBitCanvas";
 import { Spawn } from "@/assets/maps";
-import { MapCanvas } from "@/components/MapCanvas";
 
 const Home = () => {
-  return <MapCanvas mapObject={Spawn} />;
+  return <KeyBitCanvas mapObject={Spawn} />;
 };
 
 export default Home;

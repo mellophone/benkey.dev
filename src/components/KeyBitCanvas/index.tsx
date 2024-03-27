@@ -1,29 +1,26 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import WorldManager from "@/components/MapCanvas/WorldManager";
 import Head from "next/head";
-import { MapObject } from "@/types/MapObject";
-import { useEffect, useState } from "react";
+import WorldManager from "./WorldManager";
+import MapObject from "@/types/MapObject";
+import { useCallback, useEffect } from "react";
 
 const CANVAS_ID = "canvas-area";
 
-export const MapCanvas = (props: { mapObject: MapObject }) => {
+const KeyBitCanvas = (props: { mapObject: MapObject }) => {
   const { mapObject } = props;
-  const [, setWorldManager] = useState<WorldManager | undefined>();
 
-  useEffect(() => onStartup(), []);
-
-  const onStartup = () => {
-    const canvas = getCanvas();
-    const newWorldManager = new WorldManager(canvas, mapObject);
-    setWorldManager(newWorldManager);
-  };
-
-  const getCanvas = (): HTMLCanvasElement => {
+  const getCanvas = useCallback((): HTMLCanvasElement => {
     const canvas = document.getElementById(CANVAS_ID);
     if (!canvas)
       throw new Error(`Cannot find canvas element with id: ${CANVAS_ID}`);
     return canvas as HTMLCanvasElement;
-  };
+  }, []);
+
+  const onStartup = useCallback(() => {
+    const canvas = getCanvas();
+    const worldManager = new WorldManager(canvas, mapObject);
+  }, [getCanvas, mapObject]);
+
+  useEffect(onStartup, [onStartup]);
 
   return (
     <>
@@ -54,10 +51,9 @@ export const MapCanvas = (props: { mapObject: MapObject }) => {
           zoom: 1,
           touchAction: "none",
         }}
-        onMouseMove={(ev) => {}}
-        onMouseLeave={() => {}}
-        onClick={() => {}}
       ></canvas>
     </>
   );
 };
+
+export default KeyBitCanvas;

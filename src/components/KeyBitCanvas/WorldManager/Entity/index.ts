@@ -27,7 +27,7 @@ export default class Entity {
 
   private addDestinationFromButtons = () => {
     if (this.leavingCell || this.cellQueue.length > 0) return;
-    const { playerMover } = this.worldManager.cameraHandler;
+    const { playerMover } = this.worldManager.frameHandler;
 
     const nextCell = playerMover.getNextCell(this.currentCell);
     if (nextCell) this.setDestination(nextCell);
@@ -129,7 +129,7 @@ export default class Entity {
     this.yOffset += dy;
 
     const { cameraOffset, updateCamera, walkableAreaRelativeCoord } =
-      this.worldManager.cameraHandler;
+      this.worldManager.frameHandler;
 
     const xyDestination = this.currentCell.toCenterXYCoord();
 
