@@ -1,5 +1,6 @@
 import WorldManager from "..";
 import { XYCoord } from "../../../../types/Cell";
+import EntityGrid from "../EntityGrid";
 
 export default class FrameHandler {
   public cameraOffset = new XYCoord(0, 0);
@@ -22,7 +23,7 @@ export default class FrameHandler {
     this.startListeners();
   };
 
-  public drawCurrentFrame = (fNum: number) => {
+  public drawCurrentFrame = (entityGrid: EntityGrid) => {
     const { imageLoader, mapObject, devMode, ben } = this.worldManager;
 
     this.updateCamera();
@@ -31,7 +32,7 @@ export default class FrameHandler {
     this.drawSimpleImage(mapImage, 0, 0);
 
     if (devMode) {
-      this.drawDevModeLayer();
+      this.drawDevModeLayer(entityGrid);
     }
 
     this.drawSelector();
@@ -56,8 +57,8 @@ export default class FrameHandler {
     this.drawComplexImage(...ben.getDrawValues());
   };
 
-  public drawDevModeLayer = () => {
-    this.drawGrid();
+  private drawDevModeLayer = (entityGrid: EntityGrid) => {
+    this.drawGrid(entityGrid);
 
     this.drawWalkableArea();
 
@@ -73,8 +74,8 @@ export default class FrameHandler {
     );
   };
 
-  public drawGrid = () => {
-    const { imageLoader, entityGrid, ben } = this.worldManager;
+  private drawGrid = (entityGrid: EntityGrid) => {
+    const { imageLoader, ben } = this.worldManager;
     const outline = imageLoader.getLoadedImage("/redoutline.png");
     const blueSelector = imageLoader.getLoadedImage("/blueselector.png");
     const yellowSelector = imageLoader.getLoadedImage("/yellowselector.png");

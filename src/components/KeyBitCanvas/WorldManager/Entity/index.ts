@@ -1,5 +1,6 @@
 import WorldManager from "..";
 import { Direction, IsoCell } from "../../../../types/Cell";
+import EntityGrid from "../EntityGrid";
 
 export default class Entity {
   public cellQueue: IsoCell[] = [];
@@ -35,7 +36,7 @@ export default class Entity {
     if (nextCell) this.setDestination(nextCell);
   };
 
-  public think = (tNum: number) => {
+  public think = (tNum: number, entityGrid: EntityGrid) => {
     this.dx = 0;
     this.dy = 0;
     this.addDestinationFromButtons();
@@ -43,13 +44,13 @@ export default class Entity {
     const needsToMove = this.cellQueue.length > 0 || this.leavingCell;
 
     if (needsToMove) {
-      this.handleMovement(tNum);
+      this.handleMovement(tNum, entityGrid);
     }
   };
 
-  public handleMovement = (tNum: number) => {
+  public handleMovement = (tNum: number, entityGrid: EntityGrid) => {
     if (this.walkStart < 0) {
-      this.startWalk(tNum);
+      this.startWalk(tNum, entityGrid);
     }
 
     const dt = tNum - this.walkStart;
@@ -60,14 +61,14 @@ export default class Entity {
     if (!nextFrameReady) return;
 
     if (sequenceIndex === 10) {
-      this.stopWalk();
+      this.stopWalk(entityGrid);
       return;
     }
 
     this.setNextFrame();
   };
 
-  public startWalk = (tNum: number) => {
+  public startWalk = (tNum: number, entityGrid: EntityGrid) => {
     const nextCell = this.cellQueue.shift();
     if (!nextCell) return;
 
@@ -75,7 +76,7 @@ export default class Entity {
 
     this.leavingCell = this.currentCell;
     this.currentCell = nextCell;
-    this.worldManager.entityGrid.placeEntity(this);
+    entityGrid.placeEntity(this);
     this.walkStart = tNum;
 
     this.setDirectionOffset();
@@ -104,9 +105,9 @@ export default class Entity {
     }
   };
 
-  public stopWalk = () => {
+  public stopWalk = (entityGrid: EntityGrid) => {
     if (this.leavingCell) {
-      this.worldManager.entityGrid.removeEntity(this.leavingCell);
+      entityGrid.removeEntity(this.leavingCell);
       this.leavingCell = undefined;
     }
     this.addDestinationFromButtons();

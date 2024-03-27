@@ -13,7 +13,7 @@ const hertzToMs = (hertz: number) => 1000 / hertz;
 export default class WorldManager {
   private frameHandler = new FrameHandler(this);
   public imageLoader = new ImageLoader(this.mapObject);
-  public entityGrid = new EntityGrid(this);
+  private entityGrid = new EntityGrid(this);
   public ben: Entity | undefined;
 
   public playerMover = new Mover("w", "a", "s", "d");
@@ -59,7 +59,7 @@ export default class WorldManager {
   public manageUpdates = (tNum: number) => {
     if (!this.ben) return;
 
-    this.ben.think(tNum);
+    this.ben.think(tNum, this.entityGrid);
 
     const { cameraOffset, updateCamera, walkableAreaRelativeCoord } =
       this.frameHandler;
@@ -83,7 +83,7 @@ export default class WorldManager {
   public startFrameLoop = () => {
     let fNum = 0;
     this.frameLoop = setInterval(() => {
-      this.frameHandler.drawCurrentFrame(fNum);
+      this.frameHandler.drawCurrentFrame(this.entityGrid);
       fNum++;
     }, hertzToMs(FRAMES_PER_SECOND));
   };
