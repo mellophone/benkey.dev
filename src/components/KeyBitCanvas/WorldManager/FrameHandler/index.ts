@@ -1,7 +1,9 @@
 import WorldManager from "..";
 import { XYCoord } from "../../../../types/Cell";
+import MapObject from "../../../../types/MapObject";
 import Entity from "../Entity";
 import EntityGrid from "../EntityGrid";
+import ImageLoader from "./ImageLoader";
 
 export default class FrameHandler {
   public cameraOffset = new XYCoord(0, 0);
@@ -13,23 +15,36 @@ export default class FrameHandler {
   };
   public mouse = new XYCoord(-20, -20);
   private context: CanvasRenderingContext2D;
+  private imageLoader = new ImageLoader(this.mapObject);
 
-  constructor(public worldManager: WorldManager, private player: Entity) {
+  constructor(
+    public worldManager: WorldManager,
+    private player: Entity,
+    private mapObject: MapObject
+  ) {
     const canvasContext = worldManager.canvas.getContext("2d");
     if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
     this.context = canvasContext;
   }
+
+  public onImageLoadingComplete = (onCompleteCallback: () => void) => {
+    this.imageLoader.onLoadingComplete = onCompleteCallback;
+  };
+
+  public startImageLoading = (canvas: HTMLCanvasElement) => {
+    this.imageLoader.startImageLoading(canvas);
+  };
 
   public temporaryStart = () => {
     this.startListeners();
   };
 
   public drawCurrentFrame = (entityGrid: EntityGrid) => {
-    const { imageLoader, mapObject, devMode } = this.worldManager;
+    const { devMode } = this.worldManager;
 
     this.updateCamera();
 
-    const mapImage = imageLoader.getLoadedImage(mapObject.mapSrc);
+    const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
     this.drawSimpleImage(mapImage, 0, 0);
 
     if (devMode) {
@@ -42,7 +57,7 @@ export default class FrameHandler {
       if (cell.value) {
         const { x, y } = cell.value.currentCell.toXYCoord();
 
-        const shadowImage = imageLoader.getLoadedImage("/shadow.png");
+        const shadowImage = this.imageLoader.getLoadedImage("/shadow.png");
 
         this.drawComplexImage(
           shadowImage,
@@ -57,7 +72,7 @@ export default class FrameHandler {
         );
 
         this.drawComplexImage(
-          this.worldManager.imageLoader.getLoadedImage(cell.value.textureName),
+          this.imageLoader.getLoadedImage(cell.value.textureName),
           ...cell.value.getDrawValues()
         );
       }
@@ -82,10 +97,11 @@ export default class FrameHandler {
   };
 
   private drawGrid = (entityGrid: EntityGrid) => {
-    const { imageLoader } = this.worldManager;
-    const outline = imageLoader.getLoadedImage("/redoutline.png");
-    const blueSelector = imageLoader.getLoadedImage("/blueselector.png");
-    const yellowSelector = imageLoader.getLoadedImage("/yellowselector.png");
+    const outline = this.imageLoader.getLoadedImage("/redoutline.png");
+    const blueSelector = this.imageLoader.getLoadedImage("/blueselector.png");
+    const yellowSelector = this.imageLoader.getLoadedImage(
+      "/yellowselector.png"
+    );
 
     entityGrid.forEach((cell) => {
       const { x, y } = cell.matrixCell.toXYCoord();
@@ -101,9 +117,7 @@ export default class FrameHandler {
   };
 
   public drawSelector = () => {
-    const { imageLoader } = this.worldManager;
-
-    const selectorImage = imageLoader.getLoadedImage("/selector.png");
+    const selectorImage = this.imageLoader.getLoadedImage("/selector.png");
     const mouseIso = this.mouse.toIsoCell();
     const snapMouse = mouseIso.toXYCoord();
 
@@ -222,9 +236,7 @@ export default class FrameHandler {
   };
 
   public getMapDimensions = () => {
-    const { mapObject, imageLoader } = this.worldManager;
-
-    const mapImage = imageLoader.getLoadedImage(mapObject.mapSrc);
+    const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
     if (!mapImage) return;
 
     const { naturalWidth, naturalHeight } = mapImage;

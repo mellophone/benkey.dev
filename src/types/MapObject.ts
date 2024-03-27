@@ -1,6 +1,8 @@
 type MapObject = {
   mapName: string;
   mapSrc: string;
+  width: number;
+  height: number;
   textures: Texture[];
 };
 

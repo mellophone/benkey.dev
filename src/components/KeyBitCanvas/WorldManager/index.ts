@@ -1,21 +1,17 @@
-import Entity from "./Entity";
 import EntityGrid from "./EntityGrid";
-import ImageLoader from "./FrameHandler/ImageLoader";
 import FrameHandler from "./FrameHandler";
 import MapObject from "@/types/MapObject";
-import { IsoCell } from "../../../types/Cell";
-import { Mover } from "../../../types/Mover";
 import Player from "./Entity/Player";
+import { Mover } from "../../../types/Mover";
 
 const UPDATES_PER_SECOND = 40;
 const FRAMES_PER_SECOND = 60;
 const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
-  public imageLoader = new ImageLoader(this.mapObject);
   private player = new Player(this);
   private entityGrid = new EntityGrid(this);
-  private frameHandler = new FrameHandler(this, this.player);
+  private frameHandler = new FrameHandler(this, this.player, this.mapObject);
 
   public playerMover = new Mover("w", "a", "s", "d");
 
@@ -25,15 +21,15 @@ export default class WorldManager {
 
   constructor(
     public canvas: HTMLCanvasElement,
-    public readonly mapObject: MapObject
+    private readonly mapObject: MapObject
   ) {
-    this.imageLoader.onLoadingComplete = this.startWorld;
-    this.imageLoader.startImageLoading(canvas);
+    this.frameHandler.onImageLoadingComplete(this.startWorld);
+    this.frameHandler.startImageLoading(canvas);
   }
 
   public startWorld = () => {
     this.frameHandler.temporaryStart();
-    this.entityGrid.resetGrid();
+    this.entityGrid.resetGrid(this.mapObject);
     this.startWorldLoop();
     this.startFrameLoop();
 

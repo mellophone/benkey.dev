@@ -1,6 +1,7 @@
 import EntityGridCell from "./EntityGridCell";
 import WorldManager from "..";
 import Entity from "../Entity";
+import MapObject from "../../../../types/MapObject";
 import { IsoCell, MatrixCell } from "../../../../types/Cell";
 
 export default class EntityGrid {
@@ -8,12 +9,9 @@ export default class EntityGrid {
 
   constructor(public worldManager: WorldManager) {}
 
-  public resetGrid = () => {
-    const { imageLoader, mapObject } = this.worldManager;
-
-    const mapImage = imageLoader.getLoadedImage(mapObject.mapSrc);
-    const numRows = Math.floor((mapImage.height - 4) / 5);
-    const numCols = Math.floor((mapImage.width - 10) / 20);
+  public resetGrid = (mapObject: MapObject) => {
+    const numRows = Math.floor((mapObject.height - 4) / 5);
+    const numCols = Math.floor((mapObject.width - 10) / 20);
 
     this.grid = [];
 

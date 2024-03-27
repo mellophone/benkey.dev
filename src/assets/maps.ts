@@ -1,4 +1,4 @@
-import { MapObject } from "@/types/MapObject";
+import MapObject from "@/types/MapObject";
 
 export const Spawn: MapObject = {
   mapName: "Spawn",
@@ -124,4 +124,6 @@ export const Spawn: MapObject = {
       renderCells: [[15, -1]],
     },
   ],
+  width: 310,
+  height: 164,
 };
