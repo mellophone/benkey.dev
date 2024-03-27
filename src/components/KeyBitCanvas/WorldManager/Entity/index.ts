@@ -17,7 +17,7 @@ export default class Entity {
   constructor(
     public worldManager: WorldManager,
     public name: string,
-    public texture: HTMLImageElement,
+    public textureName: string,
     public currentCell: IsoCell,
     public xiOffset = 0,
     public yiOffset = 0,
@@ -171,7 +171,6 @@ export default class Entity {
     const { x, y } = this.currentCell.toXYCoord();
 
     return [
-      this.texture,
       this.frameNum * 16,
       this.direction * 16,
       this.w,

@@ -1,5 +1,6 @@
 import WorldManager from "..";
 import { XYCoord } from "../../../../types/Cell";
+import Entity from "../Entity";
 import EntityGrid from "../EntityGrid";
 
 export default class FrameHandler {
@@ -13,7 +14,7 @@ export default class FrameHandler {
   public mouse = new XYCoord(-20, -20);
   private context: CanvasRenderingContext2D;
 
-  constructor(public worldManager: WorldManager) {
+  constructor(public worldManager: WorldManager, private player: Entity) {
     const canvasContext = worldManager.canvas.getContext("2d");
     if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
     this.context = canvasContext;
@@ -24,7 +25,7 @@ export default class FrameHandler {
   };
 
   public drawCurrentFrame = (entityGrid: EntityGrid) => {
-    const { imageLoader, mapObject, devMode, ben } = this.worldManager;
+    const { imageLoader, mapObject, devMode } = this.worldManager;
 
     this.updateCamera();
 
@@ -37,24 +38,30 @@ export default class FrameHandler {
 
     this.drawSelector();
 
-    if (!ben) return;
-    const { x, y } = ben.currentCell.toXYCoord();
+    entityGrid.forEach((cell) => {
+      if (cell.value) {
+        const { x, y } = cell.value.currentCell.toXYCoord();
 
-    const shadowImage = imageLoader.getLoadedImage("/shadow.png");
+        const shadowImage = imageLoader.getLoadedImage("/shadow.png");
 
-    this.drawComplexImage(
-      shadowImage,
-      0,
-      0,
-      shadowImage.width,
-      shadowImage.height,
-      x + ben.xOffset,
-      y + ben.yOffset,
-      shadowImage.width,
-      shadowImage.height
-    );
+        this.drawComplexImage(
+          shadowImage,
+          0,
+          0,
+          shadowImage.width,
+          shadowImage.height,
+          x + cell.value.xOffset,
+          y + cell.value.yOffset,
+          shadowImage.width,
+          shadowImage.height
+        );
 
-    this.drawComplexImage(...ben.getDrawValues());
+        this.drawComplexImage(
+          this.worldManager.imageLoader.getLoadedImage(cell.value.textureName),
+          ...cell.value.getDrawValues()
+        );
+      }
+    });
   };
 
   private drawDevModeLayer = (entityGrid: EntityGrid) => {
@@ -75,7 +82,7 @@ export default class FrameHandler {
   };
 
   private drawGrid = (entityGrid: EntityGrid) => {
-    const { imageLoader, ben } = this.worldManager;
+    const { imageLoader } = this.worldManager;
     const outline = imageLoader.getLoadedImage("/redoutline.png");
     const blueSelector = imageLoader.getLoadedImage("/blueselector.png");
     const yellowSelector = imageLoader.getLoadedImage("/yellowselector.png");
@@ -83,7 +90,7 @@ export default class FrameHandler {
     entityGrid.forEach((cell) => {
       const { x, y } = cell.matrixCell.toXYCoord();
 
-      if (ben?.cellQueue.find(cell.matrixCell.toIsoCell().equals)) {
+      if (this.player.cellQueue.find(cell.matrixCell.toIsoCell().equals)) {
         this.drawSimpleImage(yellowSelector, x - 1, y - 1);
       } else if (!cell.value) {
         this.drawSimpleImage(outline, x, y);
@@ -94,7 +101,7 @@ export default class FrameHandler {
   };
 
   public drawSelector = () => {
-    const { imageLoader, ben } = this.worldManager;
+    const { imageLoader } = this.worldManager;
 
     const selectorImage = imageLoader.getLoadedImage("/selector.png");
     const mouseIso = this.mouse.toIsoCell();
@@ -103,7 +110,8 @@ export default class FrameHandler {
     this.drawSimpleImage(selectorImage, snapMouse.x - 1, snapMouse.y - 1);
 
     const destination =
-      ben?.cellQueue.at(-1) || (ben?.leavingCell && ben.currentCell);
+      this.player.cellQueue.at(-1) ||
+      (this.player.leavingCell && this.player.currentCell);
     if (!destination) return;
 
     if (mouseIso.equals(destination)) return;
@@ -242,12 +250,10 @@ export default class FrameHandler {
   };
 
   public mouseDownListener = (ev: MouseEvent) => {
-    const { ben } = this.worldManager;
-
     const mousePosition = this.getMousePosition(ev);
     const destination = mousePosition.toIsoCell();
 
-    ben?.setDestination(destination);
+    this.player.setDestination(destination);
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {
@@ -301,7 +307,7 @@ export default class FrameHandler {
     canvas.height = window.innerHeight;
 
     this.setDesiredZoom();
-    this.focusCameraOnBen();
+    this.focusCameraOnPlayer();
   };
 
   private getDesiredZoom = (): number => {
@@ -326,12 +332,8 @@ export default class FrameHandler {
     this.setZoom(safestZoom);
   };
 
-  public focusCameraOnBen = () => {
-    const { ben } = this.worldManager;
-
-    if (!ben) return;
-
-    const xyCoord = ben.currentCell.toCenterXYCoord();
+  public focusCameraOnPlayer = () => {
+    const xyCoord = this.player.currentCell.toCenterXYCoord();
     this.focusCamera(xyCoord);
   };
 

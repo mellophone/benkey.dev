@@ -1,6 +1,15 @@
 import MapObject from "@/types/MapObject";
 import { ImageCollection } from "@/types/ImageData";
 
+enum ImageID {
+  Ben = "/ben0.png",
+  Selector = "/selector.png",
+  BlueSelector = "/blueselector.png",
+  YellowSelector = "/yellowselector.png",
+  Shadow = "/shadow.png",
+  RedOutline = "/redoutline.png",
+}
+
 export default class ImageLoader {
   private currentlyLoading: number;
   private defaultSrcList = [

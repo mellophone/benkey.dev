@@ -5,16 +5,17 @@ import FrameHandler from "./FrameHandler";
 import MapObject from "@/types/MapObject";
 import { IsoCell } from "../../../types/Cell";
 import { Mover } from "../../../types/Mover";
+import Player from "./Entity/Player";
 
 const UPDATES_PER_SECOND = 40;
 const FRAMES_PER_SECOND = 60;
 const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
-  private frameHandler = new FrameHandler(this);
   public imageLoader = new ImageLoader(this.mapObject);
+  private player = new Player(this);
   private entityGrid = new EntityGrid(this);
-  public ben: Entity | undefined;
+  private frameHandler = new FrameHandler(this, this.player);
 
   public playerMover = new Mover("w", "a", "s", "d");
 
@@ -36,15 +37,7 @@ export default class WorldManager {
     this.startWorldLoop();
     this.startFrameLoop();
 
-    this.ben = new Entity(
-      this,
-      "ben",
-      this.imageLoader.getLoadedImage("/ben0.png"),
-      new IsoCell(1, -1),
-      2,
-      -10
-    );
-    this.entityGrid.placeEntity(this.ben);
+    this.entityGrid.placeEntity(this.player);
     this.frameHandler.resizeCanvas();
   };
 
@@ -57,18 +50,18 @@ export default class WorldManager {
   };
 
   public manageUpdates = (tNum: number) => {
-    if (!this.ben) return;
+    if (!this.player) return;
 
-    this.ben.think(tNum, this.entityGrid);
+    this.player.think(tNum, this.entityGrid);
 
     const { cameraOffset, updateCamera, walkableAreaRelativeCoord } =
       this.frameHandler;
 
-    const xyDestination = this.ben.currentCell.toCenterXYCoord();
+    const xyDestination = this.player.currentCell.toCenterXYCoord();
 
     const { x, y } = walkableAreaRelativeCoord(xyDestination);
 
-    const { dx, dy } = this.ben;
+    const { dx, dy } = this.player;
 
     cameraOffset.x += x === dx ? dx : 0;
     cameraOffset.y += y === dy ? dy : 0;
