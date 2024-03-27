@@ -38,6 +38,7 @@ export default class FrameHandler {
 
   public drawCurrentFrame = () => {
     this.updateCameraOffset();
+    this.fillBlackBackground();
 
     const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
     this.drawSimpleImage(mapImage, 0, 0);
@@ -57,6 +58,11 @@ export default class FrameHandler {
         );
       }
     });
+  };
+
+  private fillBlackBackground = () => {
+    this.context.fillStyle = "black";
+    this.context.fillRect(0, 0, window.innerWidth, window.innerHeight);
   };
 
   private drawDevModeLayer = () => {
@@ -107,8 +113,11 @@ export default class FrameHandler {
   };
 
   private updateCameraOffset = () => {
-    this.cameraOffset.x += this.cameraMover.getXMovement();
-    this.cameraOffset.y += this.cameraMover.getYMovement();
+    if (this.devMode) {
+      this.cameraOffset.x += this.cameraMover.getXMovement();
+      this.cameraOffset.y += this.cameraMover.getYMovement();
+      return;
+    }
 
     const cell = this.player.getCurrentCell();
     const { x, y } = this.getDistanceFromSafeArea(cell);
