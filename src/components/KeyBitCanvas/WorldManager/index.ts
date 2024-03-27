@@ -33,7 +33,6 @@ export default class WorldManager {
     this.startWorldLoop();
     this.startFrameLoop();
     this.player.placeInGrid(this.entityGrid);
-    this.frameHandler.resizeCanvas();
   };
 
   private startWorldLoop = () => {
@@ -46,7 +45,6 @@ export default class WorldManager {
 
   private manageWorldUpdates = (tNum: number) => {
     this.player.think(tNum, this.entityGrid);
-    this.frameHandler.updateSafeAreaCameraOffset();
   };
 
   private stopWorldLoop = () => {

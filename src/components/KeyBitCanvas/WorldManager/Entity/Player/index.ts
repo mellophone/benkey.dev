@@ -11,7 +11,6 @@ export default class Player extends Entity {
   private frameNum = 0;
   private walkStart = -1;
   private direction = Direction.SE;
-  private currentStep = new XYCoord(0, 0);
 
   constructor(spawnCell: IsoCell) {
     super("ben", "/ben0.png", spawnCell, 2, -10);
@@ -21,17 +20,18 @@ export default class Player extends Entity {
     return [...this.cellQueue];
   };
 
+  public getAnimationOffset = (): XYCoord => {
+    const xOffset = this.xOffset - this.xiOffset;
+    const yOffset = this.yOffset - this.yiOffset;
+
+    return new XYCoord(xOffset, yOffset);
+  };
+
   public setMoveState = (key: string, active: boolean): void => {
     this.playerMover.updateMoverState(key, active);
   };
 
-  public getCurrentStep = (): XYCoord => {
-    return this.currentStep.getCopy();
-  };
-
   public think = (tNum: number, entityGrid: EntityGrid): void => {
-    this.currentStep.x = 0;
-    this.currentStep.y = 0;
     this.addDestinationFromButtons(entityGrid);
 
     const needsToMove = this.cellQueue.length > 0 || this.leavingCell;
@@ -175,12 +175,12 @@ export default class Player extends Entity {
     const goingE =
       this.direction === Direction.SE || this.direction === Direction.NE;
 
-    this.currentStep.x = goingE ? 1 : -1;
-    this.currentStep.y =
+    const xDistance = goingE ? 1 : -1;
+    const yDistance =
       ((this.frameNum + (goingS ? 0 : 1)) % 2) * (goingS ? 1 : -1);
 
-    this.xOffset += this.currentStep.x;
-    this.yOffset += this.currentStep.y;
+    this.xOffset += xDistance;
+    this.yOffset += yDistance;
   };
 
   private drawPlayer = (

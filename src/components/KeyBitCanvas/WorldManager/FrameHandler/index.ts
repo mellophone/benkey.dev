@@ -3,7 +3,7 @@ import Player from "../Entity/Player";
 import EntityGrid from "../EntityGrid";
 import ImageLoader from "./ImageLoader";
 import Mover from "../Mover";
-import { XYCoord } from "../Cells";
+import { IsoCell, XYCoord } from "../Cells";
 
 export default class FrameHandler {
   private cameraOffset = new XYCoord(0, 0);
@@ -22,11 +22,14 @@ export default class FrameHandler {
     const canvasContext = canvas.getContext("2d");
     if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
     this.context = canvasContext;
-    this.startListeners(entityGrid);
   }
 
   public onImageLoadingComplete = (onCompleteCallback: () => void) => {
-    this.imageLoader.onLoadingComplete = onCompleteCallback;
+    this.imageLoader.onLoadingComplete = () => {
+      onCompleteCallback();
+      this.startListeners(this.entityGrid);
+      this.resizeCanvas();
+    };
   };
 
   public startImageLoading = (canvas: HTMLCanvasElement) => {
@@ -95,7 +98,7 @@ export default class FrameHandler {
     });
   };
 
-  public drawSelector = () => {
+  private drawSelector = () => {
     const selectorImage = this.imageLoader.getLoadedImage("/selector.png");
     const mouseIso = this.mouse.toIsoCell();
     const snapMouse = mouseIso.toXYCoord();
@@ -103,24 +106,20 @@ export default class FrameHandler {
     this.drawSimpleImage(selectorImage, snapMouse.x - 1, snapMouse.y - 1);
   };
 
-  public updateSafeAreaCameraOffset = () => {
-    const xyDestination = this.player.getCurrentCell().toCenterXYCoord();
-
-    const { x, y } = this.walkableAreaRelativeCoord(xyDestination);
-    const { x: xStep, y: yStep } = this.player.getCurrentStep();
-
-    this.cameraOffset.x += x === xStep ? xStep : 0;
-    this.cameraOffset.y += y === yStep ? yStep : 0;
-    this.setSafeCameraOffset();
-  };
-
-  public updateCameraOffset = () => {
+  private updateCameraOffset = () => {
     this.cameraOffset.x += this.cameraMover.getXMovement();
     this.cameraOffset.y += this.cameraMover.getYMovement();
+
+    const cell = this.player.getCurrentCell();
+    const { x, y } = this.getDistanceFromSafeArea(cell);
+
+    this.cameraOffset.x += x;
+    this.cameraOffset.y += y;
+
     this.setSafeCameraOffset();
   };
 
-  public drawSimpleImage = (
+  private drawSimpleImage = (
     image: CanvasImageSource,
     dx: number,
     dy: number
@@ -130,7 +129,7 @@ export default class FrameHandler {
     this.context.drawImage(image, dx - x, dy - y);
   };
 
-  public drawComplexImage = (
+  private drawComplexImage = (
     image: CanvasImageSource,
     sx: number,
     sy: number,
@@ -146,7 +145,7 @@ export default class FrameHandler {
     this.context.drawImage(image, sx, sy, sw, sh, dx - x, dy - y, dw, dh);
   };
 
-  public fillText = (
+  private fillText = (
     text: string,
     dx: number,
     dy: number,
@@ -161,7 +160,7 @@ export default class FrameHandler {
     this.context.fillText(text, dx - x, dy - y);
   };
 
-  public getAdjustedWindowDimensions = () => {
+  private getAdjustedWindowDimensions = () => {
     const zoom = this.getZoom();
     return {
       w: window.innerWidth / zoom,
@@ -169,7 +168,7 @@ export default class FrameHandler {
     };
   };
 
-  public drawWalkableArea = () => {
+  private drawWalkableArea = () => {
     this.context.strokeStyle = "red";
     this.context.lineWidth = 1;
 
@@ -178,20 +177,43 @@ export default class FrameHandler {
     this.context.strokeRect(w / 5, h / 5, (3 * w) / 5, (3 * h) / 5);
   };
 
-  public walkableAreaRelativeCoord = (xyCoord: XYCoord) => {
-    const { x, y } = xyCoord;
+  private getDistanceFromSafeArea = (cell: IsoCell): XYCoord => {
+    const { x, y } = cell.toCenterXYCoord();
     const { w, h } = this.getAdjustedWindowDimensions();
+    const { x: playerX, y: playerY } = this.player.getAnimationOffset();
 
-    const xAdjusted = x - this.cameraOffset.x;
-    const yAdjusted = y - this.cameraOffset.y;
+    const screenX = x - this.cameraOffset.x + playerX;
+    const screenY = y - this.cameraOffset.y + playerY;
 
-    const xSide = xAdjusted < w / 5 ? -1 : xAdjusted > (4 * w) / 5 ? 1 : 0;
-    const ySide = yAdjusted < h / 5 ? -1 : yAdjusted > (4 * h) / 5 ? 1 : 0;
+    const leftLine = w / 5;
+    const rightLine = (4 * w) / 5;
+    const topLine = h / 5;
+    const bottomLine = (4 * h) / 5;
 
-    return new XYCoord(xSide, ySide);
+    const leftDistance = screenX - leftLine;
+    const rightDistance = screenX - rightLine;
+    const topDistance = screenY - topLine;
+    const bottomDistance = screenY - bottomLine;
+
+    const xDistance = Math.round(
+      screenX < leftLine
+        ? leftDistance
+        : screenX > rightLine
+        ? rightDistance
+        : 0
+    );
+    const yDistance = Math.round(
+      screenY < topLine
+        ? topDistance
+        : screenY > bottomLine
+        ? bottomDistance
+        : 0
+    );
+
+    return new XYCoord(xDistance, yDistance);
   };
 
-  public startListeners = (entityGrid: EntityGrid) => {
+  private startListeners = (entityGrid: EntityGrid) => {
     this.startAutomaticResizing();
     this.canvas.onmousemove = this.mouseMoveListener;
     this.canvas.onkeydown = this.keyDownListener;
@@ -199,18 +221,18 @@ export default class FrameHandler {
     this.canvas.onmousedown = (ev) => this.mouseDownListener(ev, entityGrid);
   };
 
-  public getZoom = () => {
+  private getZoom = () => {
     const zoom = this.canvas.style.getPropertyValue("zoom");
     if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
 
     return parseFloat(zoom);
   };
 
-  public setZoom = (zoom: number) => {
+  private setZoom = (zoom: number) => {
     this.canvas.style.setProperty("zoom", `${zoom}`);
   };
 
-  public getMapDimensions = () => {
+  private getMapDimensions = () => {
     const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
     if (!mapImage) return;
 
@@ -232,18 +254,18 @@ export default class FrameHandler {
     return new XYCoord(x, y);
   };
 
-  public mouseMoveListener = (ev: MouseEvent) => {
+  private mouseMoveListener = (ev: MouseEvent) => {
     this.mouse = this.getMousePosition(ev);
   };
 
-  public mouseDownListener = (ev: MouseEvent, entityGrid: EntityGrid) => {
+  private mouseDownListener = (ev: MouseEvent, entityGrid: EntityGrid) => {
     const mousePosition = this.getMousePosition(ev);
     const destination = mousePosition.toIsoCell();
 
     this.player.setDestination(destination, entityGrid);
   };
 
-  public keyDownListener = (ev: KeyboardEvent) => {
+  private keyDownListener = (ev: KeyboardEvent) => {
     const key = ev.key.toLocaleLowerCase();
 
     this.player.setMoveState(key, true);
@@ -252,19 +274,19 @@ export default class FrameHandler {
     if (key === "`") this.devMode = !this.devMode;
   };
 
-  public keyUpListener = (ev: KeyboardEvent) => {
+  private keyUpListener = (ev: KeyboardEvent) => {
     const key = ev.key.toLocaleLowerCase();
 
     this.player.setMoveState(key, false);
     this.cameraMover.updateMoverState(key, false);
   };
 
-  public startAutomaticResizing = () => {
+  private startAutomaticResizing = () => {
     this.resizeCanvas();
     window.onresize = this.resizeCanvas;
   };
 
-  public resizeCanvas = () => {
+  private resizeCanvas = () => {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
 
@@ -294,7 +316,7 @@ export default class FrameHandler {
     this.setZoom(safestZoom);
   };
 
-  public focusCameraOnPlayer = () => {
+  private focusCameraOnPlayer = () => {
     const playerCell = this.player.getCurrentCell();
     const xyCoord = playerCell.toCenterXYCoord();
     this.focusCamera(xyCoord);
