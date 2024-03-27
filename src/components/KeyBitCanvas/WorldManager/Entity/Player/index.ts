@@ -1,13 +1,13 @@
 import Entity from "..";
-import Mover from "../../../../../types/Mover";
+import PlayerMover from "../../Mover/PlayerMover";
 import EntityGrid from "../../EntityGrid";
 import ImageLoader from "../../FrameHandler/ImageLoader";
-import { Direction, IsoCell, XYCoord } from "../../../../../types/Cell";
+import { Direction, IsoCell, XYCoord } from "../../Cells";
 
 export default class Player extends Entity {
   private cellQueue: IsoCell[] = [];
   private leavingCell?: IsoCell;
-  private playerMover = new Mover("w", "a", "s", "d");
+  private playerMover = new PlayerMover("w", "a", "s", "d");
   private frameNum = 0;
   private walkStart = -1;
   private direction = Direction.SE;
@@ -45,9 +45,8 @@ export default class Player extends Entity {
     destination: IsoCell,
     entityGrid: EntityGrid
   ): void => {
-    const isDestInTopRow = destination.c >= destination.r - 1;
-    const isDestOutOfBounds = !entityGrid.isInGrid(destination);
-    if (isDestInTopRow || isDestOutOfBounds) return;
+    const isDestOutOfBounds = !entityGrid.isWalkable(destination);
+    if (isDestOutOfBounds) return;
 
     const path: IsoCell[] = [this.currentCell];
 
@@ -67,7 +66,7 @@ export default class Player extends Entity {
       const nearestCell = nearby[nearestIndex];
 
       path.push(cur);
-      const isNearestOutOfBouds = !entityGrid.isInGrid(nearestCell);
+      const isNearestOutOfBouds = !entityGrid.isWalkable(nearestCell);
       if (isNearestOutOfBouds) break;
       path.push(nearestCell);
 

@@ -1,4 +1,5 @@
-import { CELL_HEIGHT, CELL_WIDTH, PIXEL_MAG } from "@/pages/mapmaker";
+export const CELL_HEIGHT = 9;
+export const CELL_WIDTH = 20;
 
 export class IsoCell {
   constructor(public r: number, public c: number) {}
@@ -13,8 +14,8 @@ export class IsoCell {
 
   public toXYCoord = (): XYCoord => {
     const { r, c } = this;
-    const x = PIXEL_MAG * 10 * (r + c);
-    const y = PIXEL_MAG * 5 * (r - c);
+    const x = 10 * (r + c);
+    const y = 5 * (r - c);
 
     return new XYCoord(x, y);
   };
@@ -106,12 +107,8 @@ export class XYCoord {
 
   public toIsoCell = (): IsoCell => {
     const { x, y } = this;
-    const r = Math.floor(
-      (y + (1 / 2) * x - 4.5 * PIXEL_MAG) / (PIXEL_MAG * 10)
-    );
-    const c = Math.floor(
-      -(y - (1 / 2) * x - 4.5 * PIXEL_MAG) / (PIXEL_MAG * 10)
-    );
+    const r = Math.floor((y + (1 / 2) * x - 4.5) / 10);
+    const c = Math.floor(-(y - (1 / 2) * x - 4.5) / 10);
 
     return new IsoCell(r, c);
   };

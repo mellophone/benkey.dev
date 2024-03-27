@@ -2,31 +2,33 @@ import EntityGrid from "./EntityGrid";
 import FrameHandler from "./FrameHandler";
 import MapObject from "@/types/MapObject";
 import Player from "./Entity/Player";
-import { IsoCell } from "../../../types/Cell";
-
-const UPDATES_PER_SECOND = 40;
-const FRAMES_PER_SECOND = 60;
-const hertzToMs = (hertz: number) => 1000 / hertz;
+import { IsoCell } from "./Cells";
 
 export default class WorldManager {
-  private player = new Player(new IsoCell(1, -1));
-  private entityGrid = new EntityGrid(this);
-  private frameHandler = new FrameHandler(this, this.player, this.mapObject);
+  private static UPDATES_PER_SECOND = 40;
+  private static FRAMES_PER_SECOND = 60;
 
-  public devMode = false;
+  private player = new Player(new IsoCell(1, -1));
+  private entityGrid = new EntityGrid();
+  private frameHandler = new FrameHandler(
+    this.canvas,
+    this.mapObject,
+    this.player,
+    this.entityGrid
+  );
+
   private worldLoop?: NodeJS.Timer;
   private frameLoop?: NodeJS.Timer;
 
   constructor(
-    public canvas: HTMLCanvasElement,
+    private canvas: HTMLCanvasElement,
     private readonly mapObject: MapObject
   ) {
     this.frameHandler.onImageLoadingComplete(this.startWorld);
     this.frameHandler.startImageLoading(canvas);
   }
 
-  public startWorld = () => {
-    this.frameHandler.temporaryStart(this.entityGrid);
+  private startWorld = () => {
     this.entityGrid.resetGrid(this.mapObject);
     this.startWorldLoop();
     this.startFrameLoop();
@@ -34,46 +36,36 @@ export default class WorldManager {
     this.frameHandler.resizeCanvas();
   };
 
-  public startWorldLoop = () => {
+  private startWorldLoop = () => {
     let tNum = 0;
     this.worldLoop = setInterval(() => {
-      this.manageUpdates(tNum);
+      this.manageWorldUpdates(tNum);
       tNum++;
-    }, hertzToMs(UPDATES_PER_SECOND));
+    }, WorldManager.hertzToMs(WorldManager.UPDATES_PER_SECOND));
   };
 
-  public manageUpdates = (tNum: number) => {
-    if (!this.player) return;
-
+  private manageWorldUpdates = (tNum: number) => {
     this.player.think(tNum, this.entityGrid);
-
-    const { cameraOffset, updateCamera, walkableAreaRelativeCoord } =
-      this.frameHandler;
-
-    const xyDestination = this.player.getCurrentCell().toCenterXYCoord();
-
-    const { x, y } = walkableAreaRelativeCoord(xyDestination);
-    const { x: xStep, y: yStep } = this.player.getCurrentStep();
-
-    cameraOffset.x += x === xStep ? xStep : 0;
-    cameraOffset.y += y === yStep ? yStep : 0;
-
-    updateCamera();
+    this.frameHandler.updateSafeAreaCameraOffset();
   };
 
-  public stopWorldLoop = () => {
+  private stopWorldLoop = () => {
     clearInterval(this.worldLoop);
   };
 
-  public startFrameLoop = () => {
+  private startFrameLoop = () => {
     let fNum = 0;
     this.frameLoop = setInterval(() => {
-      this.frameHandler.drawCurrentFrame(this.entityGrid);
+      this.frameHandler.drawCurrentFrame();
       fNum++;
-    }, hertzToMs(FRAMES_PER_SECOND));
+    }, WorldManager.hertzToMs(WorldManager.FRAMES_PER_SECOND));
   };
 
-  public stopFrameLoop = () => {
+  private stopFrameLoop = () => {
     clearInterval(this.frameLoop);
+  };
+
+  private static hertzToMs = (hertz: number): number => {
+    return 1000 / hertz;
   };
 }

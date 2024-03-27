@@ -8,7 +8,10 @@ import {
   useEffect,
   useState,
 } from "react";
-import { IsoCell, XYCoord } from "../types/Cell";
+import {
+  IsoCell,
+  XYCoord,
+} from "../components/KeyBitCanvas/WorldManager/Cells";
 
 type StyleSet = {
   [index: string]: CSSProperties;
@@ -49,9 +52,6 @@ const SIDEBAR_PADDING = 20;
 const EDITOR_MARGIN = 20;
 
 const LOCAL_STORAGE_SAVE_NAME = "mapmakersave";
-
-export const CELL_HEIGHT = 9;
-export const CELL_WIDTH = 20;
 
 export const PIXEL_MAG = 1;
 

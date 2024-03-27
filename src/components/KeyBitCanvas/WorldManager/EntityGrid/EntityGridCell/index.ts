@@ -1,4 +1,4 @@
-import { MatrixCell } from "../../../../../types/Cell";
+import { MatrixCell } from "../../Cells";
 import Entity from "../../Entity";
 
 export default class EntityGridCell {

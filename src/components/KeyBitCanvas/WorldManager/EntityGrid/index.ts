@@ -1,15 +1,14 @@
 import EntityGridCell from "./EntityGridCell";
-import WorldManager from "..";
 import Entity from "../Entity";
 import MapObject from "../../../../types/MapObject";
-import { IsoCell, MatrixCell } from "../../../../types/Cell";
+import { IsoCell, MatrixCell } from "../Cells";
 
 export default class EntityGrid {
-  public grid: EntityGridCell[][] = [];
+  private grid: EntityGridCell[][] = [];
 
-  constructor(public worldManager: WorldManager) {}
+  constructor() {}
 
-  public resetGrid = (mapObject: MapObject) => {
+  public resetGrid = (mapObject: MapObject): void => {
     const numRows = Math.floor((mapObject.height - 4) / 5);
     const numCols = Math.floor((mapObject.width - 10) / 20);
 
@@ -31,7 +30,26 @@ export default class EntityGrid {
     return !!this.getCell(matrixCell);
   };
 
-  private getCell = (matrixCell: MatrixCell) => {
+  public isWalkable = (cell: IsoCell): boolean => {
+    const isUnderTopTwoRows = cell.c < cell.r - 1;
+    return isUnderTopTwoRows && this.isInGrid(cell);
+  };
+
+  public placeEntity = (entity: Entity, cell: IsoCell): void => {
+    const matrixCell = cell.toMatrixCell();
+    this.setCellValue(matrixCell, entity);
+  };
+
+  public removeEntity = (isoCell: IsoCell): void => {
+    const matrixCell = isoCell.toMatrixCell();
+    this.setCellValue(matrixCell, null);
+  };
+
+  public forEach = (callback: (cell: EntityGridCell) => void): void => {
+    this.grid.forEach((iRow) => iRow.forEach((cell) => callback(cell)));
+  };
+
+  private getCell = (matrixCell: MatrixCell): EntityGridCell | undefined => {
     const { i, j } = matrixCell;
 
     if (i < 0 || i >= this.grid.length) {
@@ -44,27 +62,12 @@ export default class EntityGrid {
     return this.grid[i][j];
   };
 
-  private setCellValue = (matrixCell: MatrixCell, value: Entity | null) => {
+  private setCellValue = (
+    matrixCell: MatrixCell,
+    value: Entity | null
+  ): void => {
     const cell = this.getCell(matrixCell);
     if (!cell) return;
     cell.value = value;
-  };
-
-  public placeEntity = (entity: Entity, cell: IsoCell) => {
-    const matrixCell = cell.toMatrixCell();
-    this.setCellValue(matrixCell, entity);
-  };
-
-  public removeEntity = (isoCell: IsoCell) => {
-    const matrixCell = isoCell.toMatrixCell();
-    this.setCellValue(matrixCell, null);
-  };
-
-  public forEach = (callback: (cell: EntityGridCell) => void) => {
-    this.grid.forEach((iRow) => iRow.forEach((cell) => callback(cell)));
-  };
-
-  public filter = (callback: (cell: EntityGridCell) => boolean) => {
-    return this.grid.flat().filter(callback);
   };
 }

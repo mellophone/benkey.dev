@@ -1,6 +1,6 @@
 import EntityGrid from "../EntityGrid";
 import ImageLoader from "../FrameHandler/ImageLoader";
-import { IsoCell, XYCoord } from "../../../../types/Cell";
+import { IsoCell, XYCoord } from "../Cells";
 
 export default class Entity {
   protected xOffset: number;

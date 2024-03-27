@@ -1,30 +1,28 @@
-import WorldManager from "..";
-import { XYCoord } from "../../../../types/Cell";
 import MapObject from "../../../../types/MapObject";
 import Player from "../Entity/Player";
 import EntityGrid from "../EntityGrid";
 import ImageLoader from "./ImageLoader";
+import Mover from "../Mover";
+import { XYCoord } from "../Cells";
 
 export default class FrameHandler {
-  public cameraOffset = new XYCoord(0, 0);
-  public cameraMovementKeys = {
-    i: false,
-    j: false,
-    k: false,
-    l: false,
-  };
-  public mouse = new XYCoord(-20, -20);
+  private cameraOffset = new XYCoord(0, 0);
+  private cameraMover = new Mover("i", "j", "k", "l");
+  private mouse = new XYCoord(-20, -20);
   private context: CanvasRenderingContext2D;
   private imageLoader = new ImageLoader(this.mapObject);
+  private devMode = false;
 
   constructor(
-    public worldManager: WorldManager,
+    private canvas: HTMLCanvasElement,
+    private mapObject: MapObject,
     private player: Player,
-    private mapObject: MapObject
+    private entityGrid: EntityGrid
   ) {
-    const canvasContext = worldManager.canvas.getContext("2d");
+    const canvasContext = canvas.getContext("2d");
     if (!canvasContext) throw Error("Cannot retrieve 2d canvas context!");
     this.context = canvasContext;
+    this.startListeners(entityGrid);
   }
 
   public onImageLoadingComplete = (onCompleteCallback: () => void) => {
@@ -35,25 +33,19 @@ export default class FrameHandler {
     this.imageLoader.startImageLoading(canvas);
   };
 
-  public temporaryStart = (entityGrid: EntityGrid) => {
-    this.startListeners(entityGrid);
-  };
-
-  public drawCurrentFrame = (entityGrid: EntityGrid) => {
-    const { devMode } = this.worldManager;
-
-    this.updateCamera();
+  public drawCurrentFrame = () => {
+    this.updateCameraOffset();
 
     const mapImage = this.imageLoader.getLoadedImage(this.mapObject.mapSrc);
     this.drawSimpleImage(mapImage, 0, 0);
 
-    if (devMode) {
-      this.drawDevModeLayer(entityGrid);
+    if (this.devMode) {
+      this.drawDevModeLayer();
     }
 
     this.drawSelector();
 
-    entityGrid.forEach((cell) => {
+    this.entityGrid.forEach((cell) => {
       if (cell.value) {
         cell.value.drawEntity(
           this.context,
@@ -64,8 +56,8 @@ export default class FrameHandler {
     });
   };
 
-  private drawDevModeLayer = (entityGrid: EntityGrid) => {
-    this.drawGrid(entityGrid);
+  private drawDevModeLayer = () => {
+    this.drawGrid();
 
     this.drawWalkableArea();
 
@@ -81,14 +73,14 @@ export default class FrameHandler {
     );
   };
 
-  private drawGrid = (entityGrid: EntityGrid) => {
+  private drawGrid = () => {
     const outline = this.imageLoader.getLoadedImage("/redoutline.png");
     const blueSelector = this.imageLoader.getLoadedImage("/blueselector.png");
     const yellowSelector = this.imageLoader.getLoadedImage(
       "/yellowselector.png"
     );
 
-    entityGrid.forEach((cell) => {
+    this.entityGrid.forEach((cell) => {
       const { x, y } = cell.matrixCell.toXYCoord();
       const playerCellQueue = this.player.getMovementCellQueue();
       const isoCell = cell.matrixCell.toIsoCell();
@@ -111,10 +103,20 @@ export default class FrameHandler {
     this.drawSimpleImage(selectorImage, snapMouse.x - 1, snapMouse.y - 1);
   };
 
-  public updateCamera = () => {
-    const { i, j, k, l } = this.cameraMovementKeys;
-    this.cameraOffset.x += (l ? 1 : 0) + (j ? -1 : 0);
-    this.cameraOffset.y += (k ? 1 : 0) + (i ? -1 : 0);
+  public updateSafeAreaCameraOffset = () => {
+    const xyDestination = this.player.getCurrentCell().toCenterXYCoord();
+
+    const { x, y } = this.walkableAreaRelativeCoord(xyDestination);
+    const { x: xStep, y: yStep } = this.player.getCurrentStep();
+
+    this.cameraOffset.x += x === xStep ? xStep : 0;
+    this.cameraOffset.y += y === yStep ? yStep : 0;
+    this.setSafeCameraOffset();
+  };
+
+  public updateCameraOffset = () => {
+    this.cameraOffset.x += this.cameraMover.getXMovement();
+    this.cameraOffset.y += this.cameraMover.getYMovement();
     this.setSafeCameraOffset();
   };
 
@@ -190,26 +192,22 @@ export default class FrameHandler {
   };
 
   public startListeners = (entityGrid: EntityGrid) => {
-    const { canvas } = this.worldManager;
-
     this.startAutomaticResizing();
-    canvas.onmousemove = this.mouseMoveListener;
-    canvas.onkeydown = this.keyDownListener;
-    canvas.onkeyup = this.keyUpListener;
-    canvas.onmousedown = (ev) => this.mouseDownListener(ev, entityGrid);
+    this.canvas.onmousemove = this.mouseMoveListener;
+    this.canvas.onkeydown = this.keyDownListener;
+    this.canvas.onkeyup = this.keyUpListener;
+    this.canvas.onmousedown = (ev) => this.mouseDownListener(ev, entityGrid);
   };
 
   public getZoom = () => {
-    const { canvas } = this.worldManager;
-    const zoom = canvas.style.getPropertyValue("zoom");
+    const zoom = this.canvas.style.getPropertyValue("zoom");
     if (!zoom) throw Error("Cannot find zoom property on MapCanvas!");
 
     return parseFloat(zoom);
   };
 
   public setZoom = (zoom: number) => {
-    const { canvas } = this.worldManager;
-    canvas.style.setProperty("zoom", `${zoom}`);
+    this.canvas.style.setProperty("zoom", `${zoom}`);
   };
 
   public getMapDimensions = () => {
@@ -246,42 +244,19 @@ export default class FrameHandler {
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {
-    const { worldManager, cameraMovementKeys } = this;
     const key = ev.key.toLocaleLowerCase();
 
     this.player.setMoveState(key, true);
+    this.cameraMover.updateMoverState(key, true);
 
-    switch (key) {
-      case "`":
-        worldManager.devMode = !worldManager.devMode;
-        break;
-      case "i":
-      case "j":
-      case "k":
-      case "l":
-        cameraMovementKeys[key] = true;
-        break;
-      default:
-        break;
-    }
+    if (key === "`") this.devMode = !this.devMode;
   };
 
   public keyUpListener = (ev: KeyboardEvent) => {
-    const { cameraMovementKeys } = this;
     const key = ev.key.toLocaleLowerCase();
 
     this.player.setMoveState(key, false);
-
-    switch (key) {
-      case "i":
-      case "j":
-      case "k":
-      case "l":
-        cameraMovementKeys[key] = false;
-        break;
-      default:
-        return;
-    }
+    this.cameraMover.updateMoverState(key, false);
   };
 
   public startAutomaticResizing = () => {
@@ -290,10 +265,8 @@ export default class FrameHandler {
   };
 
   public resizeCanvas = () => {
-    const { canvas } = this.worldManager;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
 
     this.setDesiredZoom();
     this.focusCameraOnPlayer();
