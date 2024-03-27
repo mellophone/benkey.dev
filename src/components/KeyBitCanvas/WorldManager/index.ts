@@ -2,18 +2,16 @@ import EntityGrid from "./EntityGrid";
 import FrameHandler from "./FrameHandler";
 import MapObject from "@/types/MapObject";
 import Player from "./Entity/Player";
-import { Mover } from "../../../types/Mover";
+import { IsoCell } from "../../../types/Cell";
 
 const UPDATES_PER_SECOND = 40;
 const FRAMES_PER_SECOND = 60;
 const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
-  private player = new Player(this);
+  private player = new Player(new IsoCell(1, -1));
   private entityGrid = new EntityGrid(this);
   private frameHandler = new FrameHandler(this, this.player, this.mapObject);
-
-  public playerMover = new Mover("w", "a", "s", "d");
 
   public devMode = false;
   private worldLoop?: NodeJS.Timer;
@@ -28,12 +26,11 @@ export default class WorldManager {
   }
 
   public startWorld = () => {
-    this.frameHandler.temporaryStart();
+    this.frameHandler.temporaryStart(this.entityGrid);
     this.entityGrid.resetGrid(this.mapObject);
     this.startWorldLoop();
     this.startFrameLoop();
-
-    this.entityGrid.placeEntity(this.player);
+    this.player.placeInGrid(this.entityGrid);
     this.frameHandler.resizeCanvas();
   };
 
@@ -53,14 +50,13 @@ export default class WorldManager {
     const { cameraOffset, updateCamera, walkableAreaRelativeCoord } =
       this.frameHandler;
 
-    const xyDestination = this.player.currentCell.toCenterXYCoord();
+    const xyDestination = this.player.getCurrentCell().toCenterXYCoord();
 
     const { x, y } = walkableAreaRelativeCoord(xyDestination);
+    const { x: xStep, y: yStep } = this.player.getCurrentStep();
 
-    const { dx, dy } = this.player;
-
-    cameraOffset.x += x === dx ? dx : 0;
-    cameraOffset.y += y === dy ? dy : 0;
+    cameraOffset.x += x === xStep ? xStep : 0;
+    cameraOffset.y += y === yStep ? yStep : 0;
 
     updateCamera();
   };

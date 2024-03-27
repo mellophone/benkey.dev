@@ -1,7 +1,7 @@
 import { CELL_HEIGHT, CELL_WIDTH } from "../pages/mapmaker";
 import { IsoCell, XYCoord } from "./Cell";
 
-export class Mover {
+export default class Mover {
   private up: boolean = false;
   private left: boolean = false;
   private down: boolean = false;
@@ -14,19 +14,19 @@ export class Mover {
     private rightKey: string
   ) {}
 
-  public updateMoverState = (key: string, value: boolean) => {
+  public updateMoverState = (key: string, active: boolean) => {
     switch (key) {
       case this.upKey:
-        this.up = value;
+        this.up = active;
         return;
       case this.leftKey:
-        this.left = value;
+        this.left = active;
         return;
       case this.downKey:
-        this.down = value;
+        this.down = active;
         return;
       case this.rightKey:
-        this.right = value;
+        this.right = active;
         return;
     }
   };

@@ -79,6 +79,10 @@ export class IsoCell {
 
     return r1 === r2 && c1 === c2;
   };
+
+  public getCopy = () => {
+    return new IsoCell(this.r, this.c);
+  };
 }
 
 export class MatrixCell {
@@ -125,6 +129,10 @@ export class XYCoord {
     const [x2, y2] = [comparisonCell.x, comparisonCell.y];
 
     return x1 === x2 && y1 === y2;
+  };
+
+  public getCopy = () => {
+    return new XYCoord(this.x, this.y);
   };
 }
 

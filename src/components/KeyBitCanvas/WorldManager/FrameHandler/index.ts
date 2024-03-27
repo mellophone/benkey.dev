@@ -1,7 +1,7 @@
 import WorldManager from "..";
 import { XYCoord } from "../../../../types/Cell";
 import MapObject from "../../../../types/MapObject";
-import Entity from "../Entity";
+import Player from "../Entity/Player";
 import EntityGrid from "../EntityGrid";
 import ImageLoader from "./ImageLoader";
 
@@ -19,7 +19,7 @@ export default class FrameHandler {
 
   constructor(
     public worldManager: WorldManager,
-    private player: Entity,
+    private player: Player,
     private mapObject: MapObject
   ) {
     const canvasContext = worldManager.canvas.getContext("2d");
@@ -35,8 +35,8 @@ export default class FrameHandler {
     this.imageLoader.startImageLoading(canvas);
   };
 
-  public temporaryStart = () => {
-    this.startListeners();
+  public temporaryStart = (entityGrid: EntityGrid) => {
+    this.startListeners(entityGrid);
   };
 
   public drawCurrentFrame = (entityGrid: EntityGrid) => {
@@ -55,25 +55,10 @@ export default class FrameHandler {
 
     entityGrid.forEach((cell) => {
       if (cell.value) {
-        const { x, y } = cell.value.currentCell.toXYCoord();
-
-        const shadowImage = this.imageLoader.getLoadedImage("/shadow.png");
-
-        this.drawComplexImage(
-          shadowImage,
-          0,
-          0,
-          shadowImage.width,
-          shadowImage.height,
-          x + cell.value.xOffset,
-          y + cell.value.yOffset,
-          shadowImage.width,
-          shadowImage.height
-        );
-
-        this.drawComplexImage(
-          this.imageLoader.getLoadedImage(cell.value.textureName),
-          ...cell.value.getDrawValues()
+        cell.value.drawEntity(
+          this.context,
+          this.imageLoader,
+          this.cameraOffset
         );
       }
     });
@@ -105,8 +90,10 @@ export default class FrameHandler {
 
     entityGrid.forEach((cell) => {
       const { x, y } = cell.matrixCell.toXYCoord();
+      const playerCellQueue = this.player.getMovementCellQueue();
+      const isoCell = cell.matrixCell.toIsoCell();
 
-      if (this.player.cellQueue.find(cell.matrixCell.toIsoCell().equals)) {
+      if (playerCellQueue.find(isoCell.equals)) {
         this.drawSimpleImage(yellowSelector, x - 1, y - 1);
       } else if (!cell.value) {
         this.drawSimpleImage(outline, x, y);
@@ -122,16 +109,6 @@ export default class FrameHandler {
     const snapMouse = mouseIso.toXYCoord();
 
     this.drawSimpleImage(selectorImage, snapMouse.x - 1, snapMouse.y - 1);
-
-    const destination =
-      this.player.cellQueue.at(-1) ||
-      (this.player.leavingCell && this.player.currentCell);
-    if (!destination) return;
-
-    if (mouseIso.equals(destination)) return;
-
-    const { x, y } = destination.toXYCoord();
-    this.drawSimpleImage(selectorImage, x - 1, y - 1);
   };
 
   public updateCamera = () => {
@@ -212,14 +189,14 @@ export default class FrameHandler {
     return new XYCoord(xSide, ySide);
   };
 
-  public startListeners = () => {
+  public startListeners = (entityGrid: EntityGrid) => {
     const { canvas } = this.worldManager;
 
     this.startAutomaticResizing();
     canvas.onmousemove = this.mouseMoveListener;
     canvas.onkeydown = this.keyDownListener;
     canvas.onkeyup = this.keyUpListener;
-    canvas.onmousedown = this.mouseDownListener;
+    canvas.onmousedown = (ev) => this.mouseDownListener(ev, entityGrid);
   };
 
   public getZoom = () => {
@@ -261,18 +238,18 @@ export default class FrameHandler {
     this.mouse = this.getMousePosition(ev);
   };
 
-  public mouseDownListener = (ev: MouseEvent) => {
+  public mouseDownListener = (ev: MouseEvent, entityGrid: EntityGrid) => {
     const mousePosition = this.getMousePosition(ev);
     const destination = mousePosition.toIsoCell();
 
-    this.player.setDestination(destination);
+    this.player.setDestination(destination, entityGrid);
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {
     const { worldManager, cameraMovementKeys } = this;
     const key = ev.key.toLocaleLowerCase();
 
-    worldManager.playerMover.updateMoverState(key, true);
+    this.player.setMoveState(key, true);
 
     switch (key) {
       case "`":
@@ -290,10 +267,10 @@ export default class FrameHandler {
   };
 
   public keyUpListener = (ev: KeyboardEvent) => {
-    const { cameraMovementKeys, worldManager } = this;
+    const { cameraMovementKeys } = this;
     const key = ev.key.toLocaleLowerCase();
 
-    worldManager.playerMover.updateMoverState(key, false);
+    this.player.setMoveState(key, false);
 
     switch (key) {
       case "i":
@@ -345,7 +322,8 @@ export default class FrameHandler {
   };
 
   public focusCameraOnPlayer = () => {
-    const xyCoord = this.player.currentCell.toCenterXYCoord();
+    const playerCell = this.player.getCurrentCell();
+    const xyCoord = playerCell.toCenterXYCoord();
     this.focusCamera(xyCoord);
   };
 

@@ -26,6 +26,11 @@ export default class EntityGrid {
     }
   };
 
+  public isInGrid = (cell: IsoCell): boolean => {
+    const matrixCell = cell.toMatrixCell();
+    return !!this.getCell(matrixCell);
+  };
+
   private getCell = (matrixCell: MatrixCell) => {
     const { i, j } = matrixCell;
 
@@ -45,8 +50,8 @@ export default class EntityGrid {
     cell.value = value;
   };
 
-  public placeEntity = (entity: Entity) => {
-    const matrixCell = entity.currentCell.toMatrixCell();
+  public placeEntity = (entity: Entity, cell: IsoCell) => {
+    const matrixCell = cell.toMatrixCell();
     this.setCellValue(matrixCell, entity);
   };
 
