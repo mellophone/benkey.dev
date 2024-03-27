@@ -1,6 +1,5 @@
 import WorldManager from "..";
 import { XYCoord } from "../../../../types/Cell";
-import { Mover } from "../../../../types/Mover";
 
 export default class FrameHandler {
   public cameraOffset = new XYCoord(0, 0);
@@ -10,7 +9,6 @@ export default class FrameHandler {
     k: false,
     l: false,
   };
-  public playerMover = new Mover("w", "a", "s", "d");
   public mouse = new XYCoord(-20, -20);
   private context: CanvasRenderingContext2D;
 
@@ -25,13 +23,12 @@ export default class FrameHandler {
   };
 
   public drawCurrentFrame = (fNum: number) => {
-    const { imageLoader, mapObject, frameHandler, devMode, ben } =
-      this.worldManager;
+    const { imageLoader, mapObject, devMode, ben } = this.worldManager;
 
-    frameHandler.updateCamera();
+    this.updateCamera();
 
     const mapImage = imageLoader.getLoadedImage(mapObject.mapSrc);
-    frameHandler.drawSimpleImage(mapImage, 0, 0);
+    this.drawSimpleImage(mapImage, 0, 0);
 
     if (devMode) {
       this.drawDevModeLayer();
@@ -44,7 +41,7 @@ export default class FrameHandler {
 
     const shadowImage = imageLoader.getLoadedImage("/shadow.png");
 
-    frameHandler.drawComplexImage(
+    this.drawComplexImage(
       shadowImage,
       0,
       0,
@@ -56,32 +53,28 @@ export default class FrameHandler {
       shadowImage.height
     );
 
-    frameHandler.drawComplexImage(...ben.getDrawValues());
+    this.drawComplexImage(...ben.getDrawValues());
   };
 
   public drawDevModeLayer = () => {
-    const { frameHandler } = this.worldManager;
-
     this.drawGrid();
 
-    frameHandler.drawWalkableArea();
+    this.drawWalkableArea();
 
-    const zoom = frameHandler.getZoom();
-
-    const { x, y } = frameHandler.cameraOffset;
+    const { x, y } = this.cameraOffset;
     const text = `DEV MODE (${x}, ${y})`;
 
-    frameHandler.fillText(
+    this.fillText(
       text,
       0,
-      frameHandler.getAdjustedWindowDimensions().h,
+      this.getAdjustedWindowDimensions().h,
       "red",
       "bold 20px courier"
     );
   };
 
   public drawGrid = () => {
-    const { imageLoader, entityGrid, frameHandler, ben } = this.worldManager;
+    const { imageLoader, entityGrid, ben } = this.worldManager;
     const outline = imageLoader.getLoadedImage("/redoutline.png");
     const blueSelector = imageLoader.getLoadedImage("/blueselector.png");
     const yellowSelector = imageLoader.getLoadedImage("/yellowselector.png");
@@ -90,32 +83,23 @@ export default class FrameHandler {
       const { x, y } = cell.matrixCell.toXYCoord();
 
       if (ben?.cellQueue.find(cell.matrixCell.toIsoCell().equals)) {
-        frameHandler.drawSimpleImage(yellowSelector, x - 1, y - 1);
+        this.drawSimpleImage(yellowSelector, x - 1, y - 1);
       } else if (!cell.value) {
-        frameHandler.drawSimpleImage(outline, x, y);
+        this.drawSimpleImage(outline, x, y);
       } else {
-        frameHandler.drawSimpleImage(blueSelector, x - 1, y - 1);
+        this.drawSimpleImage(blueSelector, x - 1, y - 1);
       }
     });
   };
 
   public drawSelector = () => {
-    const {
-      imageLoader,
-      frameHandler,
-      frameHandler: { mouse },
-      ben,
-    } = this.worldManager;
+    const { imageLoader, ben } = this.worldManager;
 
     const selectorImage = imageLoader.getLoadedImage("/selector.png");
-    const mouseIso = mouse.toIsoCell();
+    const mouseIso = this.mouse.toIsoCell();
     const snapMouse = mouseIso.toXYCoord();
 
-    frameHandler.drawSimpleImage(
-      selectorImage,
-      snapMouse.x - 1,
-      snapMouse.y - 1
-    );
+    this.drawSimpleImage(selectorImage, snapMouse.x - 1, snapMouse.y - 1);
 
     const destination =
       ben?.cellQueue.at(-1) || (ben?.leavingCell && ben.currentCell);
@@ -124,7 +108,7 @@ export default class FrameHandler {
     if (mouseIso.equals(destination)) return;
 
     const { x, y } = destination.toXYCoord();
-    frameHandler.drawSimpleImage(selectorImage, x - 1, y - 1);
+    this.drawSimpleImage(selectorImage, x - 1, y - 1);
   };
 
   public updateCamera = () => {
@@ -266,10 +250,10 @@ export default class FrameHandler {
   };
 
   public keyDownListener = (ev: KeyboardEvent) => {
-    const { worldManager, cameraMovementKeys, playerMover } = this;
+    const { worldManager, cameraMovementKeys } = this;
     const key = ev.key.toLocaleLowerCase();
 
-    playerMover.updateMoverState(key, true);
+    worldManager.playerMover.updateMoverState(key, true);
 
     switch (key) {
       case "`":
@@ -287,10 +271,10 @@ export default class FrameHandler {
   };
 
   public keyUpListener = (ev: KeyboardEvent) => {
-    const { cameraMovementKeys, playerMover } = this;
+    const { cameraMovementKeys, worldManager } = this;
     const key = ev.key.toLocaleLowerCase();
 
-    playerMover.updateMoverState(key, false);
+    worldManager.playerMover.updateMoverState(key, false);
 
     switch (key) {
       case "i":

@@ -1,19 +1,22 @@
 import Entity from "./Entity";
 import EntityGrid from "./EntityGrid";
 import ImageLoader from "./FrameHandler/ImageLoader";
+import FrameHandler from "./FrameHandler";
 import MapObject from "@/types/MapObject";
 import { IsoCell } from "../../../types/Cell";
-import FrameHandler from "./FrameHandler";
+import { Mover } from "../../../types/Mover";
 
 const UPDATES_PER_SECOND = 40;
 const FRAMES_PER_SECOND = 60;
 const hertzToMs = (hertz: number) => 1000 / hertz;
 
 export default class WorldManager {
-  public frameHandler = new FrameHandler(this);
+  private frameHandler = new FrameHandler(this);
   public imageLoader = new ImageLoader(this.mapObject);
   public entityGrid = new EntityGrid(this);
   public ben: Entity | undefined;
+
+  public playerMover = new Mover("w", "a", "s", "d");
 
   public devMode = false;
   private worldLoop?: NodeJS.Timer;
@@ -54,7 +57,23 @@ export default class WorldManager {
   };
 
   public manageUpdates = (tNum: number) => {
-    this.ben?.think(tNum);
+    if (!this.ben) return;
+
+    this.ben.think(tNum);
+
+    const { cameraOffset, updateCamera, walkableAreaRelativeCoord } =
+      this.frameHandler;
+
+    const xyDestination = this.ben.currentCell.toCenterXYCoord();
+
+    const { x, y } = walkableAreaRelativeCoord(xyDestination);
+
+    const { dx, dy } = this.ben;
+
+    cameraOffset.x += x === dx ? dx : 0;
+    cameraOffset.y += y === dy ? dy : 0;
+
+    updateCamera();
   };
 
   public stopWorldLoop = () => {

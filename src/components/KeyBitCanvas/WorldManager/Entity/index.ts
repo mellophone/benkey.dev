@@ -10,6 +10,8 @@ export default class Entity {
   public xOffset: number;
   public yOffset: number;
   public collision = true;
+  public dx: number = 0;
+  public dy: number = 0;
 
   constructor(
     public worldManager: WorldManager,
@@ -27,13 +29,15 @@ export default class Entity {
 
   private addDestinationFromButtons = () => {
     if (this.leavingCell || this.cellQueue.length > 0) return;
-    const { playerMover } = this.worldManager.frameHandler;
+    const { playerMover } = this.worldManager;
 
     const nextCell = playerMover.getNextCell(this.currentCell);
     if (nextCell) this.setDestination(nextCell);
   };
 
   public think = (tNum: number) => {
+    this.dx = 0;
+    this.dy = 0;
     this.addDestinationFromButtons();
 
     const needsToMove = this.cellQueue.length > 0 || this.leavingCell;
@@ -122,23 +126,11 @@ export default class Entity {
     const goingE =
       this.direction === Direction.SE || this.direction === Direction.NE;
 
-    const dx = goingE ? 1 : -1;
-    const dy = ((this.frameNum + (goingS ? 0 : 1)) % 2) * (goingS ? 1 : -1);
+    this.dx = goingE ? 1 : -1;
+    this.dy = ((this.frameNum + (goingS ? 0 : 1)) % 2) * (goingS ? 1 : -1);
 
-    this.xOffset += dx;
-    this.yOffset += dy;
-
-    const { cameraOffset, updateCamera, walkableAreaRelativeCoord } =
-      this.worldManager.frameHandler;
-
-    const xyDestination = this.currentCell.toCenterXYCoord();
-
-    const { x, y } = walkableAreaRelativeCoord(xyDestination);
-
-    cameraOffset.x += x === dx ? dx : 0;
-    cameraOffset.y += y === dy ? dy : 0;
-
-    updateCamera();
+    this.xOffset += this.dx;
+    this.yOffset += this.dy;
   };
 
   public setDestination = (destination: IsoCell) => {
