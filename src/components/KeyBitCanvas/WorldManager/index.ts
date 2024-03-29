@@ -10,7 +10,7 @@ export default class WorldManager {
   private static UPDATES_PER_SECOND = 40;
   private static FRAMES_PER_SECOND = 60;
 
-  private player = new Player(new IsoCell(1, -1));
+  private player = new Player(new IsoCell(16, -1));
   private entityGrid = new EntityGrid();
   private frameHandler = new FrameHandler(
     this.canvas,

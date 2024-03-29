@@ -51,7 +51,9 @@ export default class Player extends Entity {
     destination: IsoCell,
     entityGrid: EntityGrid
   ): void => {
-    this.direction = this.currentCell.getDirectionTo(destination);
+    if (this.cellQueue.length === 0 && !this.leavingCell) {
+      this.direction = this.currentCell.getDirectionTo(destination);
+    }
     const isDestOutOfBounds = !entityGrid.isWalkable(destination);
     if (isDestOutOfBounds) return;
 
