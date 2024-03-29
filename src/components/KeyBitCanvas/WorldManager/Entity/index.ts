@@ -53,18 +53,31 @@ export default class Entity {
       .filter((cc) => cc.render)
       .find((ec) => ec.cell.r + ec.cell.c === renderCell.r + renderCell.c + 1);
 
-    const drawWidth = drawHalf ? CELL_WIDTH / 2 : CELL_WIDTH;
+    const isSkinny = entityImage.width < CELL_WIDTH;
+    const drawWidth = isSkinny
+      ? entityImage.width
+      : drawHalf
+      ? CELL_WIDTH / 2
+      : CELL_WIDTH;
 
     context.drawImage(
       entityImage,
-      mapX - this.xOffset,
+      (isSkinny ? this.xOffset : mapX) - this.xOffset,
       0,
       drawWidth,
-      this.height,
-      mapX - camX,
+      entityImage.height,
+      (isSkinny ? this.xOffset : mapX) - camX,
       this.yOffset - camY,
       drawWidth,
-      this.height
+      entityImage.height
+    );
+
+    context.strokeStyle = "red";
+    context.strokeRect(
+      (isSkinny ? this.xOffset : mapX) - camX,
+      this.yOffset - camY,
+      drawWidth,
+      entityImage.height
     );
   };
 
