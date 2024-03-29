@@ -40,8 +40,8 @@ const KeyBitCanvas = (props: { mapObject: MapObject }) => {
         <meta property="og:image" content="/preview.png" />
         <meta property="og:url" content="/" />
         <meta property="og:title" content="KeyBit" />
-        <meta property="og:image:width" content="2560" />
-        <meta property="og:image:height" content="1400" />
+        <meta property="og:type" content="website" />
+        <meta name="robots" content="index, max-image-preview:large" />
 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="KeyBit" />
