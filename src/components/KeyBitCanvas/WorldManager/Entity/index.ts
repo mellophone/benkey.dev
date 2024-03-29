@@ -71,14 +71,6 @@ export default class Entity {
       drawWidth,
       entityImage.height
     );
-
-    context.strokeStyle = "red";
-    context.strokeRect(
-      (isSkinny ? this.xOffset : mapX) - camX,
-      this.yOffset - camY,
-      drawWidth,
-      entityImage.height
-    );
   };
 
   public getEntityCellProperties = (cell: IsoCell) => {};
