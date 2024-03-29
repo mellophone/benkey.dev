@@ -1,6 +1,7 @@
 import EntityGrid from "../EntityGrid";
 import ImageLoader from "../FrameHandler/ImageLoader";
-import { IsoCell, XYCoord } from "../Cells";
+import EntityCell from "./EntityCell";
+import { CELL_WIDTH, IsoCell, XYCoord } from "../Cells";
 
 export default class Entity {
   protected xOffset: number;
@@ -9,48 +10,87 @@ export default class Entity {
   constructor(
     private name: string,
     protected textureName: string,
-    protected currentCell: IsoCell,
-    protected xiOffset = 0,
-    protected yiOffset = 0,
-    protected width = 16,
-    protected height = 16,
+    protected currentCells: EntityCell[],
+    protected width: number,
+    protected height: number,
+    protected xiOffset: number,
+    protected yiOffset: number,
     private collision = true
   ) {
     this.xOffset = xiOffset;
     this.yOffset = yiOffset;
   }
 
-  public getCollision = (): boolean => {
-    return this.collision;
-  };
-
-  public getCurrentCell = (): IsoCell => {
-    return this.currentCell.getCopy();
+  public getCollision = (cell: IsoCell): boolean => {
+    return (
+      this.collision &&
+      !!this.currentCells.find((ec) => ec.cell.equals(cell))?.collision
+    );
   };
 
   public placeInGrid = (entityGrid: EntityGrid): void => {
-    entityGrid.placeEntity(this, this.currentCell);
+    this.currentCells.forEach((ec) => entityGrid.placeEntity(this, ec.cell));
   };
 
   public drawEntity = (
     context: CanvasRenderingContext2D,
     imageLoader: ImageLoader,
-    cameraOffset: XYCoord
+    cameraOffset: XYCoord,
+    renderCell: IsoCell
   ): void => {
+    if (
+      !this.currentCells
+        .filter((cell) => cell.render)
+        .find((rc) => rc.cell.equals(renderCell))
+    )
+      return;
+
     const entityImage = imageLoader.getLoadedImage(this.textureName);
-    const { x: mapX, y: mapY } = this.currentCell.toXYCoord();
+    const { x: mapX, y: mapY } = renderCell.toXYCoord();
     const { x: camX, y: camY } = cameraOffset;
+
+    const drawHalf = !!this.currentCells
+      .filter((cc) => cc.render)
+      .find((ec) => ec.cell.r + ec.cell.c === renderCell.r + renderCell.c + 1);
+
+    const drawWidth = drawHalf ? CELL_WIDTH / 2 : CELL_WIDTH;
 
     context.drawImage(
       entityImage,
+      mapX - this.xOffset,
       0,
-      0,
-      this.width,
+      drawWidth,
       this.height,
-      mapX + this.xOffset - camX,
-      mapY + this.yOffset - camY,
-      this.width,
+      mapX - camX,
+      this.yOffset - camY,
+      drawWidth,
       this.height
     );
   };
+
+  public getEntityCellProperties = (cell: IsoCell) => {};
+
+  // public drawEntity = (
+  //   context: CanvasRenderingContext2D,
+  //   imageLoader: ImageLoader,
+  //   cameraOffset: XYCoord
+  // ): void => {
+  //   this.renderCells.forEach((renderCell) => {
+  //     const entityImage = imageLoader.getLoadedImage(this.textureName);
+  //     const { x: mapX, y: mapY } = renderCell.toXYCoord();
+  //     const { x: camX, y: camY } = cameraOffset;
+
+  //     context.drawImage(
+  //       entityImage,
+  //       mapX - this.xOffset,
+  //       0,
+  //       CELL_WIDTH,
+  //       this.height,
+  //       this.xOffset - camX + mapX - this.xOffset,
+  //       this.yOffset - camY,
+  //       CELL_WIDTH,
+  //       this.height
+  //     );
+  //   });
+  // };
 }

@@ -50,13 +50,14 @@ export default class FrameHandler {
     this.drawSelector();
 
     this.entityGrid.forEach((cell) => {
-      if (cell.value) {
-        cell.value.drawEntity(
+      cell.getEntities().forEach((entity) => {
+        entity.drawEntity(
           this.context,
           this.imageLoader,
-          this.cameraOffset
+          this.cameraOffset,
+          cell.matrixCell.toIsoCell()
         );
-      }
+      });
     });
   };
 
@@ -96,7 +97,7 @@ export default class FrameHandler {
 
       if (playerCellQueue.find(isoCell.equals)) {
         this.drawSimpleImage(yellowSelector, x - 1, y - 1);
-      } else if (!cell.value) {
+      } else if (!cell.getEntities().length) {
         this.drawSimpleImage(outline, x, y);
       } else {
         this.drawSimpleImage(blueSelector, x - 1, y - 1);

@@ -3,6 +3,7 @@ import PlayerMover from "../../Mover/PlayerMover";
 import EntityGrid from "../../EntityGrid";
 import ImageLoader from "../../FrameHandler/ImageLoader";
 import { Direction, IsoCell, XYCoord } from "../../Cells";
+import EntityCell from "../EntityCell";
 
 export default class Player extends Entity {
   private cellQueue: IsoCell[] = [];
@@ -12,9 +13,14 @@ export default class Player extends Entity {
   private walkStart = -1;
   private direction = Direction.SE;
 
-  constructor(spawnCell: IsoCell) {
-    super("ben", "/ben0.png", spawnCell, 2, -10);
+  constructor(private currentCell: IsoCell) {
+    const { r, c } = currentCell;
+    super("ben", "/ben0.png", [new EntityCell(currentCell)], 16, 16, 2, -10);
   }
+
+  public getCurrentCell = (): IsoCell => {
+    return this.currentCell.getCopy();
+  };
 
   public getMovementCellQueue = () => {
     return [...this.cellQueue];
@@ -45,6 +51,7 @@ export default class Player extends Entity {
     destination: IsoCell,
     entityGrid: EntityGrid
   ): void => {
+    this.direction = this.currentCell.getDirectionTo(destination);
     const isDestOutOfBounds = !entityGrid.isWalkable(destination);
     if (isDestOutOfBounds) return;
 
@@ -83,10 +90,52 @@ export default class Player extends Entity {
   public drawEntity = (
     context: CanvasRenderingContext2D,
     imageLoader: ImageLoader,
-    cameraOffset: XYCoord
+    cameraOffset: XYCoord,
+    renderCell: IsoCell
   ): void => {
-    this.drawShadow(context, imageLoader, cameraOffset);
-    this.drawPlayer(context, imageLoader, cameraOffset);
+    const entityImage = imageLoader.getLoadedImage(this.textureName);
+    const shadowImage = imageLoader.getLoadedImage("/shadow.png");
+    const { x: mapX, y: mapY } = this.currentCell.toXYCoord();
+    const { x: renX } = renderCell.toXYCoord();
+    const { x: camX, y: camY } = cameraOffset;
+
+    const xFrameStart = this.frameNum * this.width;
+    const yFrameStart = this.direction * this.height;
+    const drawWidth = this.width;
+    const drawHeight = this.height;
+    const xCanvasStart = mapX + this.xOffset;
+    const yCanvasStart = mapY + this.yOffset;
+
+    const xRenderStart = renX + this.xiOffset;
+    const widthDif = xCanvasStart - xRenderStart;
+    const isCurrent = renderCell.equals(this.currentCell);
+    const xCurrentDif = isCurrent ? 0 : this.width - Math.abs(renX - mapX);
+
+    const xRenderOffset = widthDif < 0 ? xCurrentDif : widthDif;
+
+    context.drawImage(
+      shadowImage,
+      xRenderStart + xRenderOffset - xCanvasStart,
+      0,
+      drawWidth - Math.abs(widthDif) - xCurrentDif,
+      shadowImage.height,
+      xRenderStart + xRenderOffset - camX,
+      yCanvasStart - camY,
+      drawWidth - Math.abs(widthDif) - xCurrentDif,
+      shadowImage.height
+    );
+
+    context.drawImage(
+      entityImage,
+      xFrameStart + xRenderStart + xRenderOffset - xCanvasStart,
+      yFrameStart,
+      drawWidth - Math.abs(widthDif) - xCurrentDif,
+      drawHeight,
+      xRenderStart + xRenderOffset - camX,
+      yCanvasStart - camY,
+      drawWidth - Math.abs(widthDif) - xCurrentDif,
+      drawHeight
+    );
   };
 
   private addDestinationFromButtons = (entityGrid: EntityGrid): void => {
@@ -123,7 +172,6 @@ export default class Player extends Entity {
     this.direction = this.currentCell.getDirectionTo(nextCell);
 
     this.leavingCell = this.currentCell;
-    entityGrid.removeEntity(this.leavingCell);
     this.currentCell = nextCell;
     entityGrid.placeEntity(this, this.currentCell);
     this.walkStart = tNum;
@@ -156,6 +204,7 @@ export default class Player extends Entity {
 
   private stopWalk = (entityGrid: EntityGrid): void => {
     if (this.leavingCell) {
+      entityGrid.removeEntity(this, this.leavingCell);
       this.leavingCell = undefined;
     }
     this.addDestinationFromButtons(entityGrid);
@@ -181,49 +230,5 @@ export default class Player extends Entity {
 
     this.xOffset += xDistance;
     this.yOffset += yDistance;
-  };
-
-  private drawPlayer = (
-    context: CanvasRenderingContext2D,
-    imageLoader: ImageLoader,
-    cameraOffset: XYCoord
-  ): void => {
-    const entityImage = imageLoader.getLoadedImage(this.textureName);
-    const { x: mapX, y: mapY } = this.currentCell.toXYCoord();
-    const { x: camX, y: camY } = cameraOffset;
-
-    context.drawImage(
-      entityImage,
-      this.frameNum * this.width,
-      this.direction * this.height,
-      this.width,
-      this.height,
-      mapX + this.xOffset - camX,
-      mapY + this.yOffset - camY,
-      this.width,
-      this.height
-    );
-  };
-
-  private drawShadow = (
-    context: CanvasRenderingContext2D,
-    imageLoader: ImageLoader,
-    cameraOffset: XYCoord
-  ): void => {
-    const shadowImage = imageLoader.getLoadedImage("/shadow.png");
-    const { x: mapX, y: mapY } = this.currentCell.toXYCoord();
-    const { x: camX, y: camY } = cameraOffset;
-
-    context.drawImage(
-      shadowImage,
-      0,
-      0,
-      shadowImage.width,
-      shadowImage.height,
-      mapX + this.xOffset - camX,
-      mapY + this.yOffset - camY,
-      shadowImage.width,
-      shadowImage.height
-    );
   };
 }

@@ -3,6 +3,8 @@ import FrameHandler from "./FrameHandler";
 import MapObject from "@/types/MapObject";
 import Player from "./Entity/Player";
 import { IsoCell } from "./Cells";
+import Entity from "./Entity";
+import EntityCell from "./Entity/EntityCell";
 
 export default class WorldManager {
   private static UPDATES_PER_SECOND = 40;
@@ -33,6 +35,54 @@ export default class WorldManager {
     this.startWorldLoop();
     this.startFrameLoop();
     this.player.placeInGrid(this.entityGrid);
+
+    this.mapObject.textures
+      .map((texture) => {
+        const cells: EntityCell[] = [];
+
+        texture.filledCells.forEach((filledCell) => {
+          const [r, c] = filledCell;
+          const cell = new IsoCell(r, c);
+          cells.push(new EntityCell(cell, true, false));
+        });
+
+        texture.renderCells.forEach((renderCell) => {
+          const [r, c] = renderCell;
+          const cell = new IsoCell(r, c);
+          const foundCell = cells.find((ec) => ec.cell.equals(cell));
+          if (foundCell) {
+            foundCell.render = true;
+          } else {
+            cells.push(new EntityCell(cell, false, true));
+          }
+        });
+
+        texture.interactiveCells.forEach((interactiveCell) => {
+          const [r, c] = interactiveCell.cell;
+          const cell = new IsoCell(r, c);
+          const foundCell = cells.find((ec) => ec.cell.equals(cell));
+          if (foundCell) {
+            foundCell.interaction = interactiveCell.interaction;
+          } else {
+            cells.push(
+              new EntityCell(cell, false, false, interactiveCell.interaction)
+            );
+          }
+        });
+
+        return new Entity(
+          texture.src,
+          texture.src,
+          cells,
+          150,
+          114,
+          texture.pxOff,
+          texture.pyOff
+        );
+      })
+      .forEach((entity) => {
+        entity.placeInGrid(this.entityGrid);
+      });
   };
 
   private startWorldLoop = () => {

@@ -31,18 +31,34 @@ export default class EntityGrid {
   };
 
   public isWalkable = (cell: IsoCell): boolean => {
+    const matrixCell = cell.toMatrixCell();
+    const entityCell = this.getCell(matrixCell);
     const isUnderTopTwoRows = cell.c < cell.r - 1;
-    return isUnderTopTwoRows && this.isInGrid(cell);
+
+    if (!isUnderTopTwoRows || !entityCell) {
+      return false;
+    }
+
+    const isEmpty = !entityCell.getCollision(cell);
+    return isEmpty;
   };
 
   public placeEntity = (entity: Entity, cell: IsoCell): void => {
     const matrixCell = cell.toMatrixCell();
-    this.setCellValue(matrixCell, entity);
+
+    const entityGridCell = this.getCell(matrixCell);
+    if (!entityGridCell) return;
+
+    entityGridCell.placeEntity(entity);
   };
 
-  public removeEntity = (isoCell: IsoCell): void => {
-    const matrixCell = isoCell.toMatrixCell();
-    this.setCellValue(matrixCell, null);
+  public removeEntity = (entity: Entity, cell: IsoCell): void => {
+    const matrixCell = cell.toMatrixCell();
+
+    const entityGridCell = this.getCell(matrixCell);
+    if (!entityGridCell) return;
+
+    entityGridCell.removeEntity(entity);
   };
 
   public forEach = (callback: (cell: EntityGridCell) => void): void => {
@@ -60,14 +76,5 @@ export default class EntityGrid {
     }
 
     return this.grid[i][j];
-  };
-
-  private setCellValue = (
-    matrixCell: MatrixCell,
-    value: Entity | null
-  ): void => {
-    const cell = this.getCell(matrixCell);
-    if (!cell) return;
-    cell.value = value;
   };
 }
