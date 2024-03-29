@@ -38,9 +38,14 @@ const KeyBitCanvas = (props: { mapObject: MapObject }) => {
         <meta name="theme-color" content="#000000" />
 
         <meta property="og:image" content="/preview.png" />
+        <meta property="og:url" content="/" />
         <meta property="og:title" content="KeyBit" />
         <meta property="og:image:width" content="2560" />
         <meta property="og:image:height" content="1400" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="KeyBit" />
+        <meta name="twitter:image" content="/preview.png" />
       </Head>
       <canvas
         tabIndex={1}
