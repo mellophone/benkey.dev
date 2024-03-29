@@ -1,9 +1,25 @@
+import MapObject from "@/types/MapObject";
 import { ImageCollection } from "@/types/ImageData";
-import { MapObject } from "@/types/MapObject";
+
+enum ImageID {
+  Ben = "/ben0.png",
+  Selector = "/selector.png",
+  BlueSelector = "/blueselector.png",
+  YellowSelector = "/yellowselector.png",
+  Shadow = "/shadow.png",
+  RedOutline = "/redoutline.png",
+}
 
 export default class ImageLoader {
   private currentlyLoading: number;
-  private defaultSrcList = ["/ben0.png", "/selector.png", "/shadow.png"];
+  private defaultSrcList = [
+    "/ben0.png",
+    "/selector.png",
+    "/blueselector.png",
+    "/yellowselector.png",
+    "/shadow.png",
+    "/redoutline.png",
+  ];
 
   private fullSrcList: string[];
   private loadedImageCollection: ImageCollection = {};
@@ -56,6 +72,9 @@ export default class ImageLoader {
   public onLoadingComplete: () => any = () => {};
 
   public getLoadedImages = () => this.loadedImageCollection;
+
+  public getLoadedImage = (filename: string) =>
+    this.loadedImageCollection[filename];
 
   private markImageLoaded = () => this.currentlyLoading--;
 

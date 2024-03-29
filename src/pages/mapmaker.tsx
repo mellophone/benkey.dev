@@ -1,10 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/alt-text */
-import {
-  isoToSnapPos,
-  mousePosToIso,
-  mousePosToSnapPos,
-} from "@/components/gridConversions";
 import Head from "next/head";
 import {
   CSSProperties,
@@ -13,6 +8,10 @@ import {
   useEffect,
   useState,
 } from "react";
+import {
+  IsoCell,
+  XYCoord,
+} from "../components/KeyBitCanvas/WorldManager/Cells";
 
 type StyleSet = {
   [index: string]: CSSProperties;
@@ -53,9 +52,6 @@ const SIDEBAR_PADDING = 20;
 const EDITOR_MARGIN = 20;
 
 const LOCAL_STORAGE_SAVE_NAME = "mapmakersave";
-
-export const CELL_HEIGHT = 9;
-export const CELL_WIDTH = 20;
 
 export const PIXEL_MAG = 1;
 
@@ -100,7 +96,7 @@ const MapMaker = () => {
     const cells: JSX.Element[] = [];
 
     specs.textures[fillMode].filledCells.forEach((cell) => {
-      const [x, y] = isoToSnapPos(...cell);
+      const { x, y } = new IsoCell(...cell).toXYCoord();
       cells.push(
         <img
           src="/redselector.png"
@@ -120,7 +116,7 @@ const MapMaker = () => {
     });
 
     specs.textures[fillMode].renderCells.forEach((cell) => {
-      const [x, y] = isoToSnapPos(...cell);
+      const { x, y } = new IsoCell(...cell).toXYCoord();
       cells.push(
         <img
           src="/yellowselector.png"
@@ -143,7 +139,7 @@ const MapMaker = () => {
       const icell = specs.textures[fillMode].interactiveCells[i];
 
       const { cell, interaction } = icell;
-      const [x, y] = isoToSnapPos(...cell);
+      const { x, y } = new IsoCell(...cell).toXYCoord();
       cells.push(
         <img
           id={`${interaction}-${i}`}
@@ -229,10 +225,11 @@ const MapMaker = () => {
               EDITOR_MARGIN;
             const mouseY = clientY + scrollY - EDITOR_MARGIN;
 
-            const [snapX, snapY] = mousePosToSnapPos(
+            const snapXY = new XYCoord(
               mouseX / zoom,
               mouseY / zoom
-            );
+            ).toSnapXYCoord();
+            const [snapX, snapY] = [snapXY.x, snapXY.y];
 
             console.log(snapX, snapY);
 
@@ -342,7 +339,8 @@ const Selector = (props: {
 
         const y = clientY - EDITOR_MARGIN + scrollY;
 
-        const iso = mousePosToIso(x / zoom, y / zoom);
+        const isoCell = new XYCoord(x / zoom, y / zoom).toIsoCell();
+        const iso = [isoCell.r, isoCell.c] as [number, number];
 
         const filteredInteractionCells = interactiveCells.filter(
           (icell) => icell.cell[0] !== iso[0] || icell.cell[1] !== iso[1]
@@ -369,7 +367,8 @@ const Selector = (props: {
 
         const y = clientY + scrollY - EDITOR_MARGIN;
 
-        const iso = mousePosToIso(x / zoom, y / zoom);
+        const isoCell = new XYCoord(x / zoom, y / zoom).toIsoCell();
+        const iso = [isoCell.r, isoCell.c] as [number, number];
 
         const filteredCells = renderCells.filter(
           (cell) => cell[0] !== iso[0] || cell[1] !== iso[1]
@@ -397,7 +396,8 @@ const Selector = (props: {
 
         const y = clientY + scrollY - EDITOR_MARGIN;
 
-        const iso = mousePosToIso(x / zoom, y / zoom);
+        const isoCell = new XYCoord(x / zoom, y / zoom).toIsoCell();
+        const iso = [isoCell.r, isoCell.c] as [number, number];
 
         const filteredCells = filledCells.filter(
           (cell) => cell[0] !== iso[0] || cell[1] !== iso[1]

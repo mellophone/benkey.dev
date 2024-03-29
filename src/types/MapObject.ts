@@ -1,6 +1,8 @@
-export type MapObject = {
+type MapObject = {
   mapName: string;
   mapSrc: string;
+  width: number;
+  height: number;
   textures: Texture[];
 };
 
@@ -19,3 +21,5 @@ export type InteractiveCell = {
   interaction: string;
   cell: Cell;
 };
+
+export default MapObject;

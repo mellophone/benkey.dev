@@ -1,7 +1,11 @@
 export type RenderObject = {
-  r: number;
-  c: number;
-  pxOff: number;
-  pyOff: number;
+  sx: number;
+  sy: number;
+  sw: number;
+  sh: number;
+  dx: number;
+  dy: number;
+  dw: number;
+  dh: number;
   z: number;
 };
