@@ -140,6 +140,7 @@ const MapMaker = () => {
 
       const { cell, interaction } = icell;
       const { x, y } = new IsoCell(...cell).toXYCoord();
+
       cells.push(
         <img
           id={`${interaction}-${i}`}
