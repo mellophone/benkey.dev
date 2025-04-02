@@ -5,18 +5,14 @@ import { BenSprite, FriendSprite } from "@/components/Sprites";
 import { Card, Column, Row } from "@/components/Containers";
 import Image from "next/image";
 import { Icon } from "@/components/Icons";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   friendStatesObject,
-  ins,
   spriteLinks,
-  spriteName,
   spriteNames,
 } from "@/components/Types";
-import dynamic from "next/dynamic";
 import NoSSR from "@/components/NoSSR";
 import { Fountain } from "@/components/Objects";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 export default function Home() {
