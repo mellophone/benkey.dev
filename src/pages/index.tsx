@@ -1,257 +1,168 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { DefaultHead } from "@/components/DefaultHead";
-import styles from "@/styles/Home.module.css";
-import { BenSprite, FriendSprite } from "@/components/Sprites";
-import { Card, Column, Row } from "@/components/Containers";
-import Image from "next/image";
-import { Icon } from "@/components/Icons";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import {
-  friendStatesObject,
-  ins,
-  spriteLinks,
-  spriteName,
-  spriteNames,
-} from "@/components/Types";
-import dynamic from "next/dynamic";
-import NoSSR from "@/components/NoSSR";
-import { Fountain } from "@/components/Objects";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Source_Code_Pro, ZCOOL_KuaiLe } from "@next/font/google";
+import { useEffect, useState } from "react";
+
+const sourceCodePro = Source_Code_Pro({
+  preload: true,
+  weight: ["400"],
+  subsets: ["latin"],
+});
+
+const endText = "ben_key";
+const letters = "abcdefghijklmnopqrstuvwxyz_.";
+
+const getRandomLetter = () => {
+  const randInd = Math.floor(Math.random() * letters.length);
+
+  return letters[randInd];
+};
 
 export default function Home() {
-  const friendStates = useState<friendStatesObject>({});
-  const [xyi, setXYI] = useState<[number, number]>([10, 10]);
-
-  const [spriteGrid, setSpriteGrid] = useState<boolean[][]>(() => {
-    const arr: boolean[][] = [];
-    for (let x = 0; x < 13; x++) {
-      const row = [];
-      for (let y = 0; y < 50; y++) {
-        row.push(false);
-      }
-      arr.push(row);
-    }
-    const fountain = [
-      [4, 8],
-      [4, 9],
-      [4, 10],
-      [5, 6],
-      [5, 7],
-      [5, 8],
-      [5, 9],
-      [5, 10],
-      [5, 11],
-      [5, 12],
-      [6, 5],
-      [6, 6],
-      [6, 7],
-      [6, 8],
-      [6, 9],
-      [6, 10],
-      [6, 11],
-      [6, 12],
-      [6, 13],
-      [7, 7],
-      [7, 8],
-      [7, 9],
-      [7, 10],
-      [7, 11],
-      [8, 9],
-    ];
-    fountain.forEach(([x, y]) => {
-      arr[x][y] = true;
-    });
-    arr[0][0] = true;
-    arr[1][1] = true;
-    return arr;
-  });
-
   useEffect(() => {
-    friendStates[0]["ben"] = {
-      complete: false,
-      data: {
-        action: "walk",
-        direction: "SE",
-        speed: 50,
-        times: 3,
-      },
-    };
+    let count = 0;
+    setStillColor("red");
 
-    friendStates[1](friendStates[0]);
+    const loop = setInterval(() => {
+      let still = "";
+      let curText = "";
+
+      const startCount = 70;
+
+      if (count <= startCount) {
+        setTitleOpacity(count / startCount);
+      }
+
+      const curTime = (count - 120) / 20;
+
+      for (let i = 0; i < endText.length; i++) {
+        if (i < curTime) {
+          still += endText[i];
+        } else if (endText[i] === " ") {
+          curText += " ";
+        } else {
+          curText += getRandomLetter();
+        }
+      }
+
+      if (endText.length - 1 < curTime) {
+        setStillColor("limegreen");
+        clearInterval(loop);
+      }
+
+      setStillText(still);
+      setFlashText(curText);
+      count++;
+    }, 10);
+
+    return () => clearInterval(loop);
   }, []);
 
-  const getAvailableXY = (): [number, number] => {
-    let randX = Math.floor(Math.random() * 25) * 10;
-    let randY =
-      Math.floor(Math.random() * 11) * 10 + (randX % 20 === 0 ? 5 : 0);
-    let r = (randX - (randX % 20)) / 20;
-    let c = randY / 5;
-    if (spriteGrid[r][c]) {
-      return getAvailableXY();
-    }
-    return [randX, randY] as [number, number];
-  };
+  const [stillColor, setStillColor] = useState("red");
+  const [stillText, setStillText] = useState("lmaufpe");
+  const [flashText, setFlashText] = useState("");
+  const [titleOpacity, setTitleOpacity] = useState(0);
 
-  const setXY = (x: number, y: number): void => {
-    let r = Math.round((x - (x % 20)) / 20);
-    let c = Math.round(y / 5);
-    spriteGrid[r][c] = true;
-  };
+  const [isBoxFocused, setIsBoxFocused] = useState(false);
+  const [isBoxOn, setIsBoxOn] = useState(false);
+  const [boxText, setBoxText] = useState("");
+  const [boxPing, setBoxPing] = useState(false);
+  const [boxIndex, setBoxIndex] = useState(0);
 
-  const unsetXY = (x: number, y: number): void => {
-    let r = Math.round((x - (x % 20)) / 20);
-    let c = Math.round(y / 5);
-    spriteGrid[r][c] = false;
-  };
-
-  const getXY = (x: number, y: number): boolean => {
-    let r = Math.round((x - (x % 20)) / 20);
-    let c = Math.round(y / 5);
-    return spriteGrid[r][c];
-  };
-
-  const gridPack = {
-    spriteGrid,
-    setXY,
-    unsetXY,
-    getXY,
-  };
-
-  const getSprites = () => {
-    const sprites = [];
-
-    sprites.push(
-      <NoSSR key={`benssr`}>
-        <BenSprite
-          name="ben"
-          id="ben1"
-          xi={-10}
-          yi={-10}
-          instruction={friendStates}
-          key="ben1"
-        />
-      </NoSSR>
-    );
-
-    const xyList: [number, number][] = [];
-
-    for (let i = 1; i < spriteNames.length; i++) {
-      const xy = getAvailableXY();
-      const friendSprite = (
-        <NoSSR key={`friend${i}ssr`}>
-          <FriendSprite
-            name={spriteNames[i]}
-            gridPack={gridPack}
-            id={`friend${i}`}
-            xyi={xy}
-            instruction={friendStates}
-            link={spriteLinks[i]}
-            key={`friend${i}`}
-          />
-        </NoSSR>
-      );
-      setXY(xy[0], xy[1]);
-      xyList.push(xy);
-      sprites.push(friendSprite);
+  useEffect(() => {
+    if (!isBoxFocused) {
+      setIsBoxOn(false);
+      return;
     }
 
-    xyList.forEach((xy) => {
-      unsetXY(xy[0], xy[1]);
-    });
-    return sprites;
-  };
-  const router = useRouter();
+    setIsBoxOn(true);
+
+    const loop = setInterval(() => {
+      setIsBoxOn((prev) => !prev);
+    }, 500);
+
+    return () => clearInterval(loop);
+  }, [isBoxFocused, boxPing]);
 
   return (
-    <>
-      <DefaultHead />
-      <style jsx global>{`
-        body {
-          margin: 0px;
-          padding: 0px;
-          overflow: hidden;
-          position: relative;
-        }
-      `}</style>
-      <main>
-        {getSprites()}
-        <Fountain xi={87} yi={29} />
+    <main>
+      <FullScreen>
         <div
-          className={styles.container}
-          style={{
-            backgroundImage: `url(/ground.png)`,
-            backgroundSize: "100%",
-            backgroundRepeat: "repeat",
-          }}
+          className={sourceCodePro.className}
+          style={{ textAlign: "center" }}
         >
-          <div className={styles.center}>
-            <Card>
-              <span
-                className={styles.title}
-                onClick={() => {
-                  friendStates[0]["ben"] = {
-                    complete: false,
-                    data: {
-                      action: "walk",
-                      direction: "NW",
-                      speed: 50,
-                      times: 3,
-                    },
-                  };
-                  setTimeout(() => {
-                    router.reload();
-                  }, 1500);
-                }}
-              >
-                ben key
-              </span>
-              <span className={styles.subtitle}>software developer</span>
-            </Card>
-            <br />
-            <Card>
-              <Column>
-                <span className={styles.aboutme}>About Me</span>
-                <Row>
-                  <Image
-                    src="/headshot.png"
-                    alt="headshot.png"
-                    className={styles.headshot}
-                    width={1000}
-                    height={1000}
-                  />
-                  <div
-                    style={{
-                      display: "inline-block",
-                      flexDirection: "row",
-                      alignItems: "center",
-                    }}
-                  >
-                    <p className={styles.introduction}>
-                      {
-                        "Hey there! My name is Benjamin Key and I'm currently a student at the University of Houston studying Math and Computer Science! Thanks for checking out my website! I will be updating this frequently. In the meantime, please enjoy your stay!"
-                      }
-                    </p>
-                  </div>
-                </Row>
-              </Column>
-            </Card>
-            <br />
-            <Icon name="resume" link="/Resume.pdf" />
-            <Icon name="linkedin" link="https://linkedin.com/in/-ben-key-" />
-            <Icon name="github" link="https://github.com/mellophone" />
-            <Icon name="gmail" link="mailto:bkey3125@gmail.com" />
-            <Icon
-              name="discord"
-              link="https://discordapp.com/users/318511797642592257"
-            />
-            <Icon
-              name="spotify"
-              link="https://open.spotify.com/user/iep6b6xqxe1hrs734pehvz3rd"
-            />
+          <div style={{ fontSize: 90, opacity: titleOpacity }}>
+            <span style={{ color: stillColor }}>{stillText}</span>
+            <span>{flashText}</span>
+          </div>
+          <div style={{ fontSize: 24 }}>software_developer</div>
+          <br />
+          <div
+            // contentEditable
+            tabIndex={0}
+            spellCheck={false}
+            onFocus={() => {
+              setIsBoxFocused(true);
+            }}
+            onBlur={() => {
+              setIsBoxFocused(false);
+            }}
+            onKeyDown={(ev) => {
+              setBoxPing((prev) => !prev);
+              if (ev.key === "ArrowRight") {
+                setBoxIndex((prev) =>
+                  prev === boxText.length ? prev : prev + 1
+                );
+              } else if (ev.key === "ArrowLeft") {
+                setBoxIndex((prev) => (prev === 0 ? 0 : prev - 1));
+              } else if (ev.key.length === 1) {
+                setBoxIndex((prev) => prev + 1);
+                setBoxText((prev) => `${prev}${ev.key}`);
+              } else if (ev.key === "Backspace") {
+                if (boxText.length < boxIndex) {
+                  setBoxIndex(boxText.length - 1);
+                }
+                setBoxText((prev) => prev.substring(0, prev.length - 1));
+              }
+            }}
+            style={{
+              fontSize: 24,
+              color: stillColor,
+              border: "solid white 1px",
+              borderRadius: 10,
+              textAlign: "left",
+              padding: 5,
+            }}
+          >
+            <span style={{ color: "white" }}>{" $ "}</span>
+            <span>{boxText.substring(0, boxIndex)}</span>
+            <span
+              style={{
+                backgroundColor: isBoxOn ? stillColor : "transparent",
+                color: isBoxOn ? "InfoBackground" : stillColor,
+              }}
+            >
+              {boxIndex < boxText.length ? boxText[boxIndex] : "⠀"}
+            </span>
+            <span>{boxText.substring(boxIndex + 1)}</span>
           </div>
         </div>
-      </main>
-    </>
+      </FullScreen>
+    </main>
   );
 }
+
+const FullScreen = (props: { children?: any }) => {
+  return (
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        gap: 20,
+      }}
+    >
+      {props.children}
+    </div>
+  );
+};
