@@ -10,7 +10,7 @@
   --button-secondary-border: #ebebeb;
 
   display: flex;
-  min-height: 100vh;
+  min-height: 100svh;
   align-items: center;
   justify-content: center;
   font-family: var(--font-geist-sans);
@@ -19,7 +19,7 @@
 
 .main {
   display: flex;
-  min-height: 100vh;
+  min-height: 100svh;
   width: 100%;
   max-width: 800px;
   flex-direction: column;
@@ -93,6 +93,20 @@ a.secondary {
   border-color: var(--button-secondary-border);
 }
 
+.fullwidth {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hstack {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
 /* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
   a.primary:hover {
@@ -137,5 +151,38 @@ a.secondary {
     --button-primary-hover: #ccc;
     --button-secondary-hover: #1a1a1a;
     --button-secondary-border: #1a1a1a;
+  }
+}
+
+.hammer {
+  position: absolute;
+  font-size: 80;
+  animation-name: hammerswing;
+  animation-duration: 1.75s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  transform: translate(-50%, -50%) rotate(20deg);
+  left: calc(50% - 60px);
+  top: calc(50% + 30px);
+}
+
+@keyframes hammerswing {
+  0%,
+  15%,
+  100% {
+    transform: translate(-50%, -50%) rotate(70deg);
+    left: calc(50% + 30px);
+    top: calc(50% + 40px);
+  }
+  25% {
+    transform: translate(-50%, -50%) rotate(20deg);
+    left: calc(50% - 50px);
+    top: calc(50% + 20px);
+  }
+  35%,
+  50% {
+    transform: translate(-50%, -50%) rotate(-30deg);
+    left: calc(50% - 90px);
+    top: calc(50% + 70px);
   }
 }
