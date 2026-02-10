@@ -1,0 +1,11 @@
+body {
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+  position: relative;
+  background-color: black;
+}
+
+html {
+  overflow: hidden;
+}

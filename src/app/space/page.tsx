@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect } from "react";
-import NoSSR from "../components/NoSSR";
+import "./page.module.css";
 
 const Space = () => {
   const startGame = () => {
@@ -22,9 +24,7 @@ const Space = () => {
 
       canvas.style.width = `min( calc(100vw - 40px), calc( ${ratio} * (100vh - 40px) ) )`;
 
-      const possibleColors = ["#ffffff", "#ff0000", "#00ff00", "#0000ff"];
-      const highlight =
-        "white" || possibleColors[Math.floor(Math.random() * 4)];
+      const highlight = "white";
 
       canvas.style.borderColor = highlight;
 
@@ -158,7 +158,7 @@ const Space = () => {
             7.5,
             0,
             0,
-            360
+            360,
           );
           context.closePath();
           context.fill();
@@ -186,16 +186,7 @@ const Space = () => {
   }, []);
 
   return (
-    <NoSSR>
-      <style jsx global>{`
-        body {
-          margin: 0px;
-          padding: 0px;
-          overflow: hidden;
-          position: relative;
-          background-color: black;
-        }
-      `}</style>
+    <>
       <div
         style={{
           margin: 0,
@@ -214,7 +205,7 @@ const Space = () => {
           }}
         ></canvas>
       </div>
-    </NoSSR>
+    </>
   );
 };
 
