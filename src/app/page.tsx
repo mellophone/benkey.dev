@@ -6,6 +6,8 @@ import SectionText from "../components/SectionText";
 import SectionHeader from "../components/SectionHeader";
 import SectionCol from "../components/SectionCol";
 import SectionImage from "../components/SectionImage";
+import TrackPreview from "../components/TrackPreview";
+import { getSongOfTheDay } from "../constants/songs";
 
 export default function Home() {
   return (
@@ -20,9 +22,11 @@ export default function Home() {
         }}
       >
         <Row>
+          <NavButton href="#welcome">Welcome</NavButton>
           <NavButton href="#education">Education</NavButton>
           <NavButton href="#experience">Experience</NavButton>
           <NavButton href="#projects">Projects</NavButton>
+          <NavButton href="#songOfTheDay">Song of the Day</NavButton>
         </Row>
         <div
           style={{
@@ -147,6 +151,9 @@ export default function Home() {
             </SectionText>
           </SectionCol>
         </Row>
+      </Section>
+      <Section id="songOfTheDay" secondary>
+        <TrackPreview id={getSongOfTheDay()} />
       </Section>
     </main>
   );

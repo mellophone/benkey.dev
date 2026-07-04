@@ -1,0 +1,59 @@
+.albumArt {
+  cursor: pointer;
+  transition: linear 0.1s;
+  position: relative;
+  z-index: 2;
+}
+
+.vinyl {
+  position: absolute;
+  transition: linear 0.1s;
+  left: 0;
+  border-radius: 100%;
+  z-index: 1;
+  animation: rotate 3s linear infinite;
+  animation-play-state: paused;
+}
+
+.previewContainer {
+  position: relative;
+}
+
+@media (pointer: fine) and (hover: hover) {
+  .previewContainer:hover .albumArt {
+    scale: 1.05;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 10px;
+    z-index: 5;
+  }
+
+  .previewContainer:hover .vinyl {
+    scale: 1.05;
+    z-index: 4;
+    translate: 0px -30%;
+  }
+}
+
+.focused .albumArt {
+  scale: 1.05;
+  box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 10px;
+  z-index: 5;
+}
+
+.focused .vinyl {
+  scale: 1.05;
+  z-index: 4;
+  translate: 0px -30%;
+}
+
+.rotating {
+  animation-play-state: running;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
