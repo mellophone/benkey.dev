@@ -6,8 +6,7 @@ import SectionText from "../components/SectionText";
 import SectionHeader from "../components/SectionHeader";
 import SectionCol from "../components/SectionCol";
 import SectionImage from "../components/SectionImage";
-import TrackPreview from "../components/TrackPreview";
-import { getSongOfTheDay } from "../constants/songs";
+import SongOfTheDay from "../components/SongOfTheDay";
 
 export default function Home() {
   return (
@@ -153,7 +152,7 @@ export default function Home() {
         </Row>
       </Section>
       <Section id="songOfTheDay" secondary>
-        <TrackPreview id={getSongOfTheDay()} />
+        <SongOfTheDay />
       </Section>
     </main>
   );
