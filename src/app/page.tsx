@@ -43,7 +43,7 @@ export default function Home() {
               transform: "translate(min(10px, 1.2vw), max(-80px, -9.6vw))",
             }}
           >
-            Developer, Thinker, Problem Solver
+            Developer, Creator, Problem Solver
           </div>
         </div>
       </div>
