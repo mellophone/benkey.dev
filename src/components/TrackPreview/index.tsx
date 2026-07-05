@@ -11,12 +11,14 @@ import SectionHeader from "../SectionHeader";
 import SectionText from "../SectionText";
 
 const TrackPreview = ({ id }: { id: string }) => {
+  const [isFetching, setIsFetching] = useState<boolean>(true);
   const [currentSong, setCurrentSong] = useState<iTunesSong | null>(null);
   const [previewState, setPreviewState] = useState<PreviewState>(
     PreviewState.paused,
   );
 
   const fetchSong = async () => {
+    setIsFetching(true);
     const url = `/api/itunes/lookup?id=${id}`;
     const request = await fetch(url);
     const payload: iTunesPayload = await request.json();
@@ -26,9 +28,12 @@ const TrackPreview = ({ id }: { id: string }) => {
 
     const firstResult = payload.results[0];
     setCurrentSong(firstResult);
+    setIsFetching(false);
   };
 
-  const onClick = (song: iTunesSong) => {
+  const togglePlayback = (song: iTunesSong) => {
+    if (!currentSong?.previewUrl) return;
+
     if (previewState === PreviewState.paused) {
       setPreviewState(PreviewState.playing);
     } else {
@@ -64,10 +69,10 @@ const TrackPreview = ({ id }: { id: string }) => {
     }
   }, [previewState]);
 
-  const getAlbumArt = (song: iTunesSong) => {
-    const albumUrl = song.artworkUrl100
-      ? song.artworkUrl100.replaceAll("100x100", "750x750")
-      : "/devhead.png";
+  const getAlbumArt = () => {
+    const albumUrl =
+      currentSong?.artworkUrl100?.replaceAll("100x100", "750x750") ??
+      "/devhead.png";
 
     return (
       <div className={styles.albumArt}>
@@ -96,13 +101,15 @@ const TrackPreview = ({ id }: { id: string }) => {
     );
   };
 
-  const getAudio = (song: iTunesSong) => {
-    if (!song.previewUrl) return <></>;
+  const getAudio = () => {
+    if (!currentSong?.previewUrl) return <></>;
 
-    return <audio id={id} src={song.previewUrl} preload="metadata" />;
+    return <audio id={id} src={currentSong.previewUrl} preload="metadata" />;
   };
 
-  const getSongPreview = (song: iTunesSong) => {
+  const getSongPreview = () => {
+    if (!currentSong && !isFetching) return <></>;
+
     const classNames = [styles.previewContainer];
 
     if (previewState === PreviewState.playing) {
@@ -111,24 +118,35 @@ const TrackPreview = ({ id }: { id: string }) => {
 
     const className = classNames.join(" ");
 
+    const songName = isFetching
+      ? "Loading..."
+      : (currentSong?.trackName ?? "Unknown Song");
+    const albumName = isFetching
+      ? "Loading..."
+      : (currentSong?.collectionName ?? "Unknown Album");
+    const artistName = isFetching
+      ? "Loading..."
+      : (currentSong?.artistName ?? "Unknown Artist");
+    const onClick = currentSong ? () => togglePlayback(currentSong) : undefined;
+
     return (
       <Row gap={20}>
         <SectionCol>
           <SectionHeader>Song of the Day</SectionHeader>
-          <SectionText>{`🎵 ${song.trackName}`}</SectionText>
-          <SectionText>{`💿 ${song.collectionName}`}</SectionText>
-          <SectionText>{`👤 ${song.artistName}`}</SectionText>
+          <SectionText>{`🎵 ${songName}`}</SectionText>
+          <SectionText>{`💿 ${albumName}`}</SectionText>
+          <SectionText>{`👤 ${artistName}`}</SectionText>
         </SectionCol>
-        <div className={className} onClick={() => onClick(song)}>
+        <div className={className} onClick={onClick}>
           {getVinyl()}
-          {getAlbumArt(song)}
-          {getAudio(song)}
+          {getAlbumArt()}
+          {getAudio()}
         </div>
       </Row>
     );
   };
 
-  return <>{currentSong ? getSongPreview(currentSong) : "Error!"}</>;
+  return getSongPreview();
 };
 
 export default TrackPreview;
